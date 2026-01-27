@@ -134,8 +134,7 @@ def main():
                                   LD_L_HL, LD_A_HL }:
                     key = game.register_file.HL
                 else:
-                    import pdb; pdb.set_trace()
-                    pass
+                    raise Exception(f"Unknown opcode {inst[0]:02X}.")
 
                 if key not in symbols:
                     symbols[key] = gen_var()
