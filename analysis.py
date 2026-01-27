@@ -83,6 +83,16 @@ ST_OPCODES = {
     ST_A16_A,
 }
 
+HL_OP_GROUP = {
+    # load from (HL)
+    LD_A_HL_INC, LD_A_HL_DEC, LD_B_HL, LD_C_HL,
+    LD_D_HL, LD_E_HL, LD_H_HL, LD_L_HL, LD_A_HL,
+
+    # store to (HL)
+    ST_HL_INC_A, ST_HL_DEC_A, ST_HL_B, ST_HL_C,
+    ST_HL_D, ST_HL_E, ST_HL_H, ST_HL_L, ST_HL_A,
+}
+
 GB_FILE = "mrdriller.gbc"
 SYM_FILE = "mrdriller.sym"
 
@@ -129,9 +139,7 @@ def main():
                     key = (b << 8) & c
                 elif inst[0] == LD_A_A16:
                     key = op.operands[1][1]
-                elif inst[0] in { LD_A_HL_INC, LD_A_HL_DEC, LD_B_HL,
-                                  LD_C_HL, LD_D_HL, LD_E_HL, LD_H_HL,
-                                  LD_L_HL, LD_A_HL }:
+                elif inst[0] in HL_OP_GROUP:
                     key = game.register_file.HL
                 else:
                     raise Exception(f"Unknown opcode {inst[0]:02X}.")
