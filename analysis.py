@@ -98,11 +98,12 @@ SYM_FILE = "mrdriller.sym"
 
 symbols = {}
 
-vars = 0
-def gen_var():
-    global vars
-    s = f"Var_{vars}"
-    vars += 1
+vars = {}
+def gen_var(prefix="Var"):
+    if prefix not in vars:
+        vars[prefix] = 0
+    s = f"{prefix}_{vars[prefix]}"
+    vars[prefix] += 1
     return s
 
 def get_current_instruction(game):
@@ -161,7 +162,14 @@ def main():
 
     game.stop()
     with open(SYM_FILE, "w") as f:
-        for k, v in symbols.items():
+        for k, _ in symbols.items():
+            assert k in read_vars or k in write_vars
+            if k in read_vars and k in write_vars:
+                v = gen_var("Var")
+            elif k in read_vars:
+                v = gen_var("Const")
+            else:
+                v = gen_var("WOnly")
             f.write(f"{k:04X} {v}\n")
 
 if __name__ == "__main__":
