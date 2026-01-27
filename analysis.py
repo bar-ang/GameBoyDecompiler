@@ -118,6 +118,9 @@ def get_current_instruction(game):
 def main():
     game = PyBoy(GB_FILE)
 
+    read_vars = []
+    write_vars = []
+
     while game.tick():
         inst, disasm = get_current_instruction(game)
 
@@ -150,6 +153,11 @@ def main():
 
             if key not in symbols:
                 symbols[key] = gen_var("Temp")
+
+            if inst[0] in LD_OPCODES:
+                read_vars.append(key)
+            else:
+                write_vars.append(key)
 
     game.stop()
     with open(SYM_FILE, "w") as f:
