@@ -70,7 +70,7 @@ class AST:
                     # It's CP cmd
                     data["A"] = Expr("==", self.rA, b)
             else:
-                raise Exception(f"could not handle opcode {opcode}")
+                raise Exception(f"opcode considered as 8-bit arithmatic, but failed to process: {opcode}")
         elif opcode >= 0x40 and opcode <= 0x80:
             # most 8-bit load commands have opcodes $40-$7f
             # lower nybble decides src register in order same as arithmatic commands
