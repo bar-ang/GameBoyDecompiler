@@ -95,6 +95,15 @@ class AST:
                 self.ass_num += 1
             else:
                 data[reg_order[dst]] = data[reg_order[src]]
+        elif opcode == 0xCB:
+            # for now, we won't identify the command exactly
+            opcode = code[1]
+            n_bytes = 3
+            reg_order = ['B', 'C', 'D', 'E', 'H', 'L', "[HL]", 'A']
+
+            reg = opcode & 7
+            beta =  ((opcode & 8) | (opcode & 0xF)) >> 3
+            data[reg_order[reg]] = Expr(f"β{beta}", self.get_data(reg_order[reg]))
 
         return code[n_bytes:]
 
