@@ -6,6 +6,7 @@ GB_FILE = "mrdriller.gbc"
 SYM_FILE = "mrdriller.sym"
 
 symbols = {}
+func_symbols = {}
 
 vars = {}
 def gen_var(prefix="Var"):
@@ -34,10 +35,11 @@ def main():
     while game.tick():
         inst, disasm = get_current_instruction(game)
 
+        print(f"{game.register_file.PC:04X}:\t" +
+            f"{" ".join(f"{i:02X}" for i in inst)}\t\t{disasm}")
+        op = disassembler.decode(bytes(inst), 0)
+
         if inst[0] in LD_OPCODES or inst[0] in ST_OPCODES:
-            print(f"{game.register_file.PC:04X}:\t" +
-                f"{" ".join(f"{i:02X}" for i in inst)}\t\t{disasm}")
-            op = disassembler.decode(bytes(inst), 0)
             if inst[0] == LD_A_IO_A8:
                 key = op.operands[1][1] + 0xff00
             elif inst[0] == ST_IO_A8_A:
@@ -69,6 +71,17 @@ def main():
             else:
                 write_vars.append(key)
 
+        elif inst[0] in CALL_COMMANDS:
+            if inst[0] == CALL_A16:
+                key = op.operands[0][1]
+            else:
+                # all other CALL cmds are very rare
+                import pdb; pdb.set_trace()
+                pass
+
+            if key not in func_symbols:
+                func_symbols[key] = gen_var("Func")
+
     game.stop()
     with open(SYM_FILE, "w") as f:
         for k, _ in symbols.items():
@@ -79,6 +92,9 @@ def main():
                 v = gen_var("Const")
             else:
                 v = gen_var("WOnly")
+            f.write(f"{k:04X} {v}\n")
+
+        for k, v in func_symbols.items():
             f.write(f"{k:04X} {v}\n")
 
 if __name__ == "__main__":
