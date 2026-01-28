@@ -84,16 +84,17 @@ class AST:
             # therefore they're 1-byte length each.
             n_bytes = 1
             reg_order = ['B', 'C', 'D', 'E', 'H', 'L', "[HL]", 'A']
-            reg = reg_order[opcode & 7]
-
-            if opcode & 7 == 6: # has memory access: op a, (HL)
-                b = Expr("*", self.get_data("HL"))
-            else:
-                b = self.get_data(reg)
 
             src = opcode & 7
-            dest = (opcode & 1) | ((opcode & 0x30) >> 3)
-            data[reg_order[dest]] = data[reg_order[src]]
+            dst = ((opcode & 8) | (opcode & 0x30)) >> 3
+            if opcode & 7 == 6: # read from memory: ld r, (HL)
+                data[f"ASS{self.ass_num}"] = Expr(" := ", data[reg_order[dst]], Expr("*", self.get_data("HL")))
+                self.ass_num += 1
+            elif opcode >= 0x70 and opcode < 0x78: # write to memory: ld (HL), r
+                data[f"ASS{self.ass_num}"] = Expr(" := ", Expr("*", self.get_data("HL")), data[reg_order[src]])
+                self.ass_num += 1
+            else:
+                data[reg_order[dst]] = data[reg_order[src]]
 
         return code[n_bytes:]
 
