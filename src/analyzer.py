@@ -31,39 +31,41 @@ class AST:
             # all codes in this range do not take constant values
             # therefore they're 1-byte length each.
             n_bytes = 1
-            reg_order = ['B', 'C', 'D', 'E', 'H', 'L', "#OOPS!#", 'A']
+            reg_order = ['B', 'C', 'D', 'E', 'H', 'L', "[HL]", 'A']
+            reg = reg_order[opcode & 7]
+            if opcode & 7 == 6: # has memory access: op a, (HL)
+                b = Expr("*", self.get_data("HL"))
+            else:
+                b = self.get_data(reg)
+
             if opcode & 0xF0 == 0x80:
-                reg = reg_order[opcode & 7]
                 if opcode & 0xF < 8:
                     # It's ADD cmd
-                    data["A"] = Expr("+", self.rA, self.get_data(reg))
+                    data["A"] = Expr("+", self.rA, b)
                 else:
                     # It's ADC cmd
-                    data["A"] = Expr("+`", self.rA, self.get_data(reg))
+                    data["A"] = Expr("+`", self.rA, b)
             elif opcode & 0xF0 == 0x90:
-                reg = reg_order[opcode & 7]
                 if opcode & 0xF < 8:
                     # It's SUB cmd
-                    data["A"] = Expr("-", self.rA, self.get_data(reg))
+                    data["A"] = Expr("-", self.rA, b)
                 else:
                     # It's SBC cmd
-                    data["A"] = Expr("-`", self.rA, self.get_data(reg))
+                    data["A"] = Expr("-`", self.rA, b)
             elif opcode & 0xF0 == 0xA0:
-                reg = reg_order[opcode & 7]
                 if opcode & 0xF < 8:
                     # It's AND cmd
-                    data["A"] = Expr("&", self.rA, self.get_data(reg))
+                    data["A"] = Expr("&", self.rA, b)
                 else:
                     # It's XOR cmd
-                    data["A"] = Expr("^", self.rA, self.get_data(reg))
+                    data["A"] = Expr("^", self.rA, b)
             elif opcode & 0xF0 == 0xB0:
-                reg = reg_order[opcode & 7]
                 if opcode & 0xF < 8:
                     # It's OR cmd
-                    data["A"] = Expr("|", self.rA, self.get_data(reg))
+                    data["A"] = Expr("|", self.rA, b)
                 else:
                     # It's CP cmd
-                    data["A"] = Expr("==", self.rA, self.get_data(reg))
+                    data["A"] = Expr("==", self.rA, b)
             else:
                 raise Exception(f"could not handle opcode {opcode}")
 
