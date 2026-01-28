@@ -1,3 +1,4 @@
+import re
 from opcodes import *
 from lr35902dis import lr35902 as disassembler
 
@@ -108,9 +109,27 @@ class Expr:
         return self.__str__()
 
     def __str__(self):
+        regex = r'[A-Za-z0-9&\.]+'
+        if type(self.a) == str:
+            a_str = self.a
+        else:
+            a_str = self.a.__str__()
+
+        if not re.fullmatch(regex, a_str):
+            a_str = f"({a_str})"
+
         if self.b is None:
-            return f"{self.op}({self.a})"
-        return f"({self.a}){self.op}({self.b})"
+            return f"{self.op}{a_str}"
+
+        if type(self.b) == str:
+            b_str = self.b
+        else:
+            b_str = self.b.__str__()
+
+        if not re.fullmatch(regex, b_str):
+            b_str = f"({b_str})"
+
+        return f"{a_str}{self.op}{b_str}"
 
 
 if __name__ == "__main__":
