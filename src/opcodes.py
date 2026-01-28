@@ -95,6 +95,8 @@ RST_38H         = 0xFF      # RST 38H
 
 
 
+####### GROUPS #######
+
 LD_OPCODES = {
     # BC / DE
     LD_A_BC, LD_A_DE,
