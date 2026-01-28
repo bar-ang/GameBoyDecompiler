@@ -93,5 +93,5 @@ class Expr:
 
 if __name__ == "__main__":
     ast = AST()
-    res = ast.process_all([0xA5, 0xA0, 0x88])
+    res = ast.process_all([0xA5, 0x86, 0xA0, 0x88])
     print(ast.rA)
