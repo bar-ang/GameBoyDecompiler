@@ -10,11 +10,11 @@ class AST:
         self._data.update(initial_data)
 
     def get_data(self, reg):
-        return self._data.get(reg, "PROBLEMS")
+        return self._data.get(reg, "??" + reg + "??")
 
     @property
     def rA(self):
-        return self._data.get("A", "PROBLEMS")
+        return self._data.get("A", "!?A!?")
 
     def step(self, code):
         opcode = code[0]
