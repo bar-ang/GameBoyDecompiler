@@ -25,6 +25,9 @@ class AST:
         opcode = code[0]
         data = self._data
 
+        if opcode == 0x76: # HALT
+            return code[1:]
+
         if opcode >= 0x80 and opcode <= 0xC0:
             # most 8-bit arithmatic commands have opcodes $80-$bf
             # with register ordered: B, C, D, E, H, L, (HL), A
@@ -68,6 +71,25 @@ class AST:
                     data["A"] = Expr("==", self.rA, b)
             else:
                 raise Exception(f"could not handle opcode {opcode}")
+        elif opcode >= 0x40 and opcode <= 0x80:
+            # most 8-bit load commands have opcodes $40-$7f
+            # lower nybble decides src register in order same as arithmatic commands
+            # upper nybble decides dst register in order.
+            # opcode 0x76 is exceptional: HALT - must make sure it won't reach this flow
+            # all codes in this range do not take constant values
+            # therefore they're 1-byte length each.
+            n_bytes = 1
+            reg_order = ['B', 'C', 'D', 'E', 'H', 'L', "[HL]", 'A']
+            reg = reg_order[opcode & 7]
+
+            if opcode & 7 == 6: # has memory access: op a, (HL)
+                b = Expr("*", self.get_data("HL"))
+            else:
+                b = self.get_data(reg)
+
+            src = opcode & 7
+            dest = (opcode & 1) | ((opcode & 0x30) >> 3)
+            data[reg_order[dest]] = data[reg_order[src]]
 
         return code[n_bytes:]
 
