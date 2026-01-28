@@ -46,6 +46,55 @@ LD_A_IO_C      = 0xF2  # LD A, (C)
 ST_A16_A       = 0xEA  # LD (a16), A
 LD_A_A16       = 0xFA  # LD A, (a16)
 
+
+
+
+
+
+############## FLOW CONTROL COMMANDS #############
+
+# --- JUMP COMMANDS ---
+JR_R8           = 0x18      # JR r8
+JR_NZ_R8        = 0x20      # JR NZ,r8
+JR_Z_R8         = 0x28      # JR Z,r8
+JR_NC_R8        = 0x30      # JR NC,r8
+JR_C_R8         = 0x38      # JR C,r8
+
+JP_NZ_A16       = 0xC2      # JP NZ,a16
+JP_A16          = 0xC3      # JP a16
+JP_Z_A16        = 0xCA      # JP Z,a16
+JP_NC_A16       = 0xD2      # JP NC,a16
+JP_C_A16        = 0xDA      # JP C,a16
+JP_HL           = 0xE9      # JP (HL)
+
+# --- CALL COMMANDS ---
+CALL_NZ_A16     = 0xC4      # CALL NZ,a16
+CALL_Z_A16      = 0xCC      # CALL Z,a16
+CALL_A16        = 0xCD      # CALL a16
+CALL_NC_A16     = 0xD4      # CALL NC,a16
+CALL_C_A16      = 0xDC      # CALL C,a16
+
+# --- RETURN COMMANDS ---
+RET_NZ          = 0xC0      # RET NZ
+RET_Z           = 0xC8      # RET Z
+RET             = 0xC9      # RET
+RETI            = 0xD9      # RETI
+RET_NC          = 0xD0      # RET NC
+RET_C           = 0xD8      # RET C
+
+# --- RESTART COMMANDS ---
+RST_00H         = 0xC7      # RST 00H
+RST_08H         = 0xCF      # RST 08H
+RST_10H         = 0xD7      # RST 10H
+RST_18H         = 0xDF      # RST 18H
+RST_20H         = 0xE7      # RST 20H
+RST_28H         = 0xEF      # RST 28H
+RST_30H         = 0xF7      # RST 30H
+RST_38H         = 0xFF      # RST 38H
+
+
+
+
 LD_OPCODES = {
     # BC / DE
     LD_A_BC, LD_A_DE,
@@ -91,3 +140,25 @@ HL_OP_GROUP = {
 }
 
 
+JR_COMMANDS = {
+    JR_R8, JR_NZ_R8, JR_Z_R8, JR_NC_R8, JR_C_R8
+}
+
+JP_COMMANDS = {
+    JP_NZ_A16, JP_A16, JP_Z_A16, JP_NC_A16,
+    JP_C_A16, JP_HL
+}
+
+CALL_COMMANDS = {
+    CALL_NZ_A16, CALL_Z_A16, CALL_A16,
+    CALL_NC_A16, CALL_C_A16
+}
+
+RET_COMMANDS = {
+    RET_NZ, RET_Z, RET, RETI, RET_NC, RET_C
+}
+
+RST_COMMANDS = {
+    RST_00H, RST_08H, RST_10H, RST_18H,
+    RST_20H, RST_28H, RST_30H, RST_38H
+}
