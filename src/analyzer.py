@@ -75,6 +75,7 @@ class AST:
             else:
                 raise Exception(f"opcode considered as 8-bit arithmatic, but failed to process: {opcode}")
         elif opcode >= 0x40 and opcode <= 0x80:
+            assert opcode != 0x76
             # most 8-bit load commands have opcodes $40-$7f
             # lower nybble decides src register in order same as arithmatic commands
             # upper nybble decides dst register in order.
