@@ -10,12 +10,14 @@ class AST:
         self._data = {r : r for r in self.REGS}
         self._data.update(initial_data)
 
+        self.ass_num = 0
+
     def get_data(self, reg):
         if reg not in self._data and reg in ("BC", "DE", "AF", "HL"):
             d1 = self._data.get(reg[0], "??" + reg[0] + "??")
             d2 = self._data.get(reg[1], "??" + reg[1] + "??")
 
-            return Expr("@", d1, d2)
+            return Expr(".", d1, d2)
         return self._data.get(reg, "??" + reg + "??")
 
     @property
