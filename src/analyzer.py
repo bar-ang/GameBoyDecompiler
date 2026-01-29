@@ -130,6 +130,21 @@ class AST:
             else:
                 data[f"ASS{self.ass_num}"] = Expr(" := ", self.get_data("HL"), f"{code[1]:02X}")
                 self.ass_num += 1
+        elif opcode < 0x40 and opcode & 7 == 2:
+            # these are LD commands that involve 16-bit regs
+            n_bytes = 1
+            reg_order = ["BC", "DE", "HL+", "HL-"]
+            reg = (opcode & 0x30) >> 4
+            if opcode & 0xf == 2: # store
+                data[f"ASS{self.ass_num}"] = Expr(" := ", self.get_data(reg_order[reg][:2]), self.rA)
+                self.ass_num += 1
+            else: # load
+                data["A"] = Expr("*", self.get_data(reg_order[reg][:2]))
+
+            if reg == 2:
+                data["HL"] = Expr("++", self.get_data("HL"), postpositive=True)
+            elif reg == 3:
+                data["HL"] = Expr("--", self.get_data("HL"), postpositive=True)
 
         elif opcode == 0xCB:
             # for now, we won't identify the command exactly
