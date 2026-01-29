@@ -119,7 +119,7 @@ class AST:
             reg = ((opcode & 8) | (opcode & 0x30)) >> 3
             op = opcode & 3
             data[reg_order[reg]] = Expr(op_order[op], data[reg_order[reg]], postpositive=True)
-        elif opcode < 40 and opcode & 7 == 6:
+        elif opcode < 0x40 and opcode & 7 == 6:
             # 2-bytes LD commands
             n_bytes = 2
             reg_order = ['B', 'C', 'D', 'E', 'H', 'L', "[HL]", 'A']
