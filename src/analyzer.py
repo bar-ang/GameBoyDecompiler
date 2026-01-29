@@ -115,10 +115,11 @@ class AST:
 
 
 class Expr:
-    def __init__(self, op, a, b=None):
+    def __init__(self, op, a, b=None, *, postpositive=False):
         self.op = op
         self.a = a
         self.b = b
+        self._postpositive = postpositive
 
     def __repr__(self):
         return self.__str__()
@@ -134,7 +135,7 @@ class Expr:
             a_str = f"({a_str})"
 
         if self.b is None:
-            return f"{self.op}{a_str}"
+            return f"{self.op}{a_str}"if not self._postpositive else f"{a_str}{self.op}"
 
         if type(self.b) == str:
             b_str = self.b
@@ -144,7 +145,8 @@ class Expr:
         if not re.fullmatch(regex, b_str):
             b_str = f"({b_str})"
 
-        return f"{a_str}{self.op}{b_str}"
+        return f"{a_str}{self.op}{b_str}" if not self._postpositive else f"{a_str}{b_str}{self.op}"
+
 
 
 if __name__ == "__main__":
