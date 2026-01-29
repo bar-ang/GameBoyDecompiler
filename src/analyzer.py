@@ -95,6 +95,42 @@ class AST:
                 self.ass_num += 1
             else:
                 data[reg_order[dst]] = data[reg_order[src]]
+        elif opcode == 0xEA: # LD (a16),A
+            n_bytes = 3
+            n = code[2] | (code[1] << 8)
+            data[f"*{n:04X}"] = self.rA
+        elif opcode == 0xFA: # LD A,(a16)
+            n_bytes = 3
+            n = code[2] | (code[1] << 8)
+            data["A"] = Expr("*", f"{n:04X}")
+        elif opcode >= 0xC0 and opcode & 7 == 6:
+            # these are all 2-byte commands operating on reg A
+            n_bytes = 2
+            op_order = ["+", "+`", "-", "-`", "&", "^", "|", "=="]
+            op = ((opcode & 8) | (opcode & 0x30)) >> 3
+            data["A"] = Expr(op_order[op], self.rA, f"{code[1]:02X}")
+        elif opcode < 40 and opcode & 7 in {4, 5}:
+            # these are all 1-byte commands with the standard reg order
+            # INC and DEC.
+            n_bytes = 1
+            reg_order = ['B', 'C', 'D', 'E', 'H', 'L', "[HL]", 'A']
+            op_order = ["++", "--"]
+
+            reg = ((opcode & 8) | (opcode & 0x30)) >> 3
+            op = opcode & 3
+            data[reg_order[reg]] = Expr(op_order[op], data[reg_order[reg]], postpositive=True)
+        elif opcode < 40 and opcode & 7 == 6:
+            # 2-bytes LD commands
+            n_bytes = 2
+            reg_order = ['B', 'C', 'D', 'E', 'H', 'L', "[HL]", 'A']
+
+            reg = ((opcode & 8) | (opcode & 0x30)) >> 3
+            if reg != 6: # reg is not [HL]
+                data[reg_order[reg]] = f"{code[1]:02X}"
+            else:
+                data[f"ASS{self.ass_num}"] = Expr(" := ", self.get_data("HL"), f"{code[1]:02X}")
+                self.ass_num += 1
+
         elif opcode == 0xCB:
             # for now, we won't identify the command exactly
             opcode = code[1]
