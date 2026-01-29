@@ -2,3 +2,4 @@ venv/
 Emulicious*
 *.gbc*
 *.sym
+src/__pycache__
