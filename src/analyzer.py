@@ -104,6 +104,8 @@ class AST:
             reg = opcode & 7
             beta =  ((opcode & 8) | (opcode & 0xF)) >> 3
             data[reg_order[reg]] = Expr(f"β{beta}", self.get_data(reg_order[reg]))
+        else:
+            raise Exception(f"Unknown instruction: {opcode}")
 
         return code[n_bytes:]
 
