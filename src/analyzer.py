@@ -155,6 +155,21 @@ class AST:
             reg = opcode & 7
             beta =  ((opcode & 8) | (opcode & 0xF)) >> 3
             data[reg_order[reg]] = Expr(f"β{beta}", self.get_data(reg_order[reg]))
+        elif opcode == 0xE0: # LDH (addr), A
+            n_bytes = 2
+            data[f"ASS{self.ass_num}"] = "rediculus"
+            self.ass_num += 1
+        elif opcode == 0xF0: # LDH A, (addr)
+            n_bytes = 2
+            data["A"] = Expr("*", f"FF{code[1]:02X}")
+        elif opcode == 0xE2: # LD (C), A
+            data[f"ASS{self.ass_num}"] = "rediculus"
+            self.ass_num += 1
+            n_bytes = 2
+        elif opcode == 0xF2: # LD A, (C)
+            n_bytes = 2
+            data["A"] = Expr("*", Expr("+", "FF00", self.get_data("C")))
+
         else:
             raise Exception(f"Unknown instruction: {opcode}")
 
