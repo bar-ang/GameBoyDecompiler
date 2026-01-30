@@ -173,7 +173,7 @@ class AST:
             data["A"] = Expr("*", Expr("+", "FF00", self.get_data("C")))
 
         else:
-            raise Exception(f"Unknown instruction: {opcode}")
+            raise Exception(f"Unknown instruction: {opcode:02X}")
 
         return code[n_bytes:]
 
