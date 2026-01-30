@@ -221,3 +221,5 @@ if __name__ == "__main__":
     ast = AST()
     res = ast.process_all([0x3E, 5, 0x3C, 0xEA, 0xFA, 0xCE])
     print("\n".join([f"{k} : {v}" for k, v in ast._data.items()]))
+    print("\n-------------\n")
+    print(ast.decompile())
