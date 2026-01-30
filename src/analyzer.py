@@ -9,8 +9,7 @@ class AST:
     def __init__(self, **initial_data):
         self._data = {r : r for r in self.REGS}
         self._data.update(initial_data)
-
-        self.ass_num = 0
+        self._gen_code = []
 
     def get_data(self, reg):
         if reg not in self._data and reg in ("BC", "DE", "AF", "HL"):
@@ -19,6 +18,12 @@ class AST:
 
             return Expr(".", d1, d2)
         return self._data.get(reg, "??" + reg + "??")
+
+    def decompile(self):
+        return "\n".join(self._gen_code)
+
+    def write_code(self, code):
+        self._gen_code.append(code)
 
     @property
     def rA(self):
@@ -88,16 +93,15 @@ class AST:
             src = opcode & 7
             dst = ((opcode & 8) | (opcode & 0x30)) >> 3
             if opcode & 7 == 6: # read from memory: ld r, (HL)
-                data[f"ASS{self.ass_num}"] = Expr(" := ", data[reg_order[dst]], Expr("*", self.get_data("HL")))
-                self.ass_num += 1
+                self.write_code(f"{data[reg_order[dst]]} := {Expr("*", self.get_data("HL"))}")
             elif opcode >= 0x70 and opcode < 0x78: # write to memory: ld (HL), r
-                data[f"ASS{self.ass_num}"] = Expr(" := ", Expr("*", self.get_data("HL")), data[reg_order[src]])
-                self.ass_num += 1
+                self.write_code(f"{Expr("*", self.get_data("HL"))} := {Expr("*", self.get_data("HL"))}")
             else:
                 data[reg_order[dst]] = data[reg_order[src]]
         elif opcode == 0xEA: # LD (a16),A
             n_bytes = 3
             n = code[2] | (code[1] << 8)
+            self.write_code(f"*{n:04X} := {self.rA}")
             data[f"*{n:04X}"] = self.rA
         elif opcode == 0xFA: # LD A,(a16)
             n_bytes = 3
@@ -128,16 +132,14 @@ class AST:
             if reg != 6: # reg is not [HL]
                 data[reg_order[reg]] = f"{code[1]:02X}"
             else:
-                data[f"ASS{self.ass_num}"] = Expr(" := ", self.get_data("HL"), f"{code[1]:02X}")
-                self.ass_num += 1
+                self.write_code(f"{self.get_data("HL")} := {code[1]:02X}")
         elif opcode < 0x40 and opcode & 7 == 2:
             # these are LD commands that involve 16-bit regs
             n_bytes = 1
             reg_order = ["BC", "DE", "HL+", "HL-"]
             reg = (opcode & 0x30) >> 4
             if opcode & 0xf == 2: # store
-                data[f"ASS{self.ass_num}"] = Expr(" := ", self.get_data(reg_order[reg][:2]), self.rA)
-                self.ass_num += 1
+                self.write_code(f"{self.get_data(reg_order[reg][:2])} := {self.rA}")
             else: # load
                 data["A"] = Expr("*", self.get_data(reg_order[reg][:2]))
 
