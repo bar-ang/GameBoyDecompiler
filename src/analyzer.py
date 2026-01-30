@@ -113,7 +113,7 @@ class AST:
             op_order = ["+", "+`", "-", "-`", "&", "^", "|", "=="]
             op = ((opcode & 8) | (opcode & 0x30)) >> 3
             data["A"] = Expr(op_order[op], self.rA, f"{code[1]:02X}")
-        elif opcode < 40 and opcode & 7 in {4, 5}:
+        elif opcode < 0x40 and opcode & 7 in {4, 5}:
             # these are all 1-byte commands with the standard reg order
             # INC and DEC.
             n_bytes = 1
