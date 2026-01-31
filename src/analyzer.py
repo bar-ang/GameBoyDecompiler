@@ -91,14 +91,19 @@ class AST:
             # these are the conditional JR commands
             n_bytes = 2
             offset = code[1]
+            todo = f"skip {offset} line"
+            if offset == 0:
+                todo = "continue regularly"
+            elif offset < 0:
+                todo = f"go back {-offset} lines"
             if opcode == 0x20: # NZ
-                self.write_code(" != 0 then:")
+                self.write_code(f" != 0 then {todo}")
             elif opcode == 0x30: # NC
-                self.write_code(" >= 0 then:")
+                self.write_code(f" >= 0 then {todo}")
             elif opcode == 0x21: # Z
-                self.write_code(" == 0 then:")
+                self.write_code(f" == 0 then {todo}")
             else:                # C
-                self.write_code(" < 0 then:")
+                self.write_code(f" < 0 then {todo}")
         elif opcode >= 0x40 and opcode <= 0x80:
             assert opcode != 0x76
             # most 8-bit load commands have opcodes $40-$7f
