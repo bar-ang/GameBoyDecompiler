@@ -173,7 +173,16 @@ class AST:
             data["A"] = Expr("*", Expr("+", "FF00", self.get_data("C")))
 
         else:
-            raise Exception(f"Unknown instruction: {opcode:02X}")
+            dis = ""
+            n_bytes = 0
+            while not dis:
+                n_bytes += 1
+                dis = disassembler.disasm(bytes(code[:n_bytes]), 0)
+                if n_bytes > 3:
+                    str_code = " ".join(f"{c:02X}" for c in code[:n_bytes])
+                    raise Exception(f"Unknown instruction: {str_code}")
+            self.write_code(f"@ {dis}")
+            print(f"unhandeled {n_bytes}-bytes opcode '{opcode:02X}'. Disassembled as '{dis}'.")
 
         return code[n_bytes:]
 
