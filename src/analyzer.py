@@ -228,7 +228,7 @@ class Expr:
 
 if __name__ == "__main__":
     ast = AST()
-    res = ast.process_all([
+    code = [
         0,                # NOP
         0,                # NOP
         0,                # NOP
@@ -241,7 +241,12 @@ if __name__ == "__main__":
         0xFA, 0xAB, 0xCD, # LD A, ($ABCD)
         0xEA, 0x98, 0x76, # LD ($9876), A
         0x7B,             # CP A, E
-    ])
-    print("\n".join([f"{k} : {v}" for k, v in ast._data.items()]))
+    ]
+
+    line = 0
+    while code:
+        line += 1
+        code = ast.step(code)
+        print(f"{line}. " + "  ##\t".join([f"{k}: {v}" for k, v in ast._data.items() if k != v]))
     print("\n-------------\n")
     print(ast.decompile())
