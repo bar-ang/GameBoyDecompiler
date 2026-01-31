@@ -23,8 +23,11 @@ class AST:
     def decompile(self):
         return "\n".join(self._gen_code)
 
-    def write_code(self, code):
-        self._gen_code.append(code)
+    def write_code(self, code, break_line=True):
+        self._gen_code_line.append(code)
+        if break_line:
+            self._gen_code.append("".join(self._gen_code_line))
+            self._gen_code_line = []
 
     @property
     def rA(self):
