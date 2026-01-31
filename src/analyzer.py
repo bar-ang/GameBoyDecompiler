@@ -228,7 +228,20 @@ class Expr:
 
 if __name__ == "__main__":
     ast = AST()
-    res = ast.process_all([0x3E, 5, 0x3C, 0xEA, 0xFA, 0xCE])
+    res = ast.process_all([
+        0,                # NOP
+        0,                # NOP
+        0,                # NOP
+        0x3E, 0x99,       # LD A, 123
+        0xEA, 0xAB, 0xCD, # LD ($ABCD), A
+        0x5F,             # LD E, A
+        0x3C,             # INC A
+        0xF5,             # PUSH AF
+        0xEA, 0xDE, 0xAD, # LD ($DEAD), A
+        0xFA, 0xAB, 0xCD, # LD A, ($ABCD)
+        0xEA, 0x98, 0x76, # LD ($9876), A
+        0x7B,             # CP A, E
+    ])
     print("\n".join([f"{k} : {v}" for k, v in ast._data.items()]))
     print("\n-------------\n")
     print(ast.decompile())
