@@ -21,7 +21,10 @@ class AST:
         return self._data.get(reg, "??" + reg + "??")
 
     def decompile(self):
-        return "\n".join(self._gen_code)
+        gen_code = self._gen_code
+        if self._gen_code_line:
+            gen_code.append("".join(self._gen_code_line))
+        return "\n".join(gen_code)
 
     def write_code(self, code, break_line=True):
         self._gen_code_line.append(code)
