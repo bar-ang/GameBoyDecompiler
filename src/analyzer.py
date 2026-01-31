@@ -10,6 +10,7 @@ class AST:
         self._data = {r : r for r in self.REGS}
         self._data.update(initial_data)
         self._gen_code = []
+        self._gen_code_line = []
 
     def get_data(self, reg):
         if reg not in self._data and reg in ("BC", "DE", "AF", "HL"):
@@ -76,8 +77,8 @@ class AST:
                     data["A"] = Expr("|", self.rA, b)
                 else:
                     # It's CP cmd
-                    expr = Expr("==", self.rA, b)
-                    self.write_code(f"if {expr} then:")
+                    expr = Expr("-", self.rA, b)
+                    self.write_code(f"if {expr}", break_line=False)
             else:
                 raise Exception(f"opcode considered as 8-bit arithmatic, but failed to process: {opcode}")
         elif opcode >= 0x40 and opcode <= 0x80:
