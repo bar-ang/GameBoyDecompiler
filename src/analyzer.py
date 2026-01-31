@@ -84,6 +84,18 @@ class AST:
                     self.write_code(f"if {expr}", break_line=False)
             else:
                 raise Exception(f"opcode considered as 8-bit arithmatic, but failed to process: {opcode}")
+        elif opcode & 0xF0 in {0x20, 0x30} and opcode & 7 == 0:
+            # these are the conditional JR commands
+            n_bytes = 2
+            offset = code[1]
+            if opcode == 0x20: # NZ
+                self.write_code(" != 0 then:")
+            elif opcode == 0x30: # NC
+                self.write_code(" >= 0 then:")
+            elif opcode == 0x21: # Z
+                self.write_code(" == 0 then:")
+            else:                # C
+                self.write_code(" < 0 then:")
         elif opcode >= 0x40 and opcode <= 0x80:
             assert opcode != 0x76
             # most 8-bit load commands have opcodes $40-$7f
