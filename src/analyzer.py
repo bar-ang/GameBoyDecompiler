@@ -241,7 +241,7 @@ if __name__ == "__main__":
         0xEA, 0xDE, 0xAD, # LD ($DEAD), A
         0xFA, 0xAB, 0xCD, # LD A, ($ABCD)
         0xEA, 0x98, 0x76, # LD ($9876), A
-        0x7B,             # CP A, E
+        0xBB,             # CP E
     ]
 
     line = 0
