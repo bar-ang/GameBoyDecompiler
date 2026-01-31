@@ -76,7 +76,8 @@ class AST:
                     data["A"] = Expr("|", self.rA, b)
                 else:
                     # It's CP cmd
-                    data["A"] = Expr("==", self.rA, b)
+                    expr = Expr("==", self.rA, b)
+                    self.write_code(f"if {expr} then:")
             else:
                 raise Exception(f"opcode considered as 8-bit arithmatic, but failed to process: {opcode}")
         elif opcode >= 0x40 and opcode <= 0x80:
