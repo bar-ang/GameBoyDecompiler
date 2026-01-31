@@ -258,6 +258,10 @@ if __name__ == "__main__":
         0xFA, 0xAB, 0xCD, # LD A, ($ABCD)
         0xEA, 0x98, 0x76, # LD ($9876), A
         0xBB,             # CP E
+        0x28, 1,          # JR Z, 1
+        0x3C,             # INC A
+        0xEA, 0x45, 0x45, # LD ($4545), A
+
     ]
 
     line = 0
