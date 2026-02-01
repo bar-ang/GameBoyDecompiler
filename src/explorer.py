@@ -67,4 +67,4 @@ def explore(file, pc_start=0x100, main_func="main"):
 if __name__ == "__main__":
     with open("example.gb", "rb") as f:
         funcmap = explore(f)
-    print(funcmap)
+    print("\n".join([f"{fun}: {s[0]} (+{s[1]})" for fun, s in funcmap.items()]))
