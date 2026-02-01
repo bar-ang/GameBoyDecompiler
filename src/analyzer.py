@@ -6,11 +6,14 @@ class AST:
 
     REGS = ["A", "B", "C", "D", "E", "F", "H", "L", "PC", "SP"]
 
-    def __init__(self, **initial_data):
+    def __init__(self, endianness="little", **initial_data):
+        assert endianness in ("big", "little")
+
         self._data = {r : r for r in self.REGS}
         self._data.update(initial_data)
         self._gen_code = []
         self._gen_code_line = []
+        self._endianness = 0 if endianness == "little" else 1
 
     def get_data(self, reg):
         if reg not in self._data and reg in ("BC", "DE", "AF", "HL"):
@@ -107,7 +110,7 @@ class AST:
         elif opcode & 0xF0 in {0xC0, 0xD0} and opcode & 7 == 2:
             # these are the conditional JP commands
             n_bytes = 3
-            offset = code[2] | (code[1] << 8)
+            offset = code[1 + self._endianness] | (code[2 - self._endianness] << 8)
             todo = f"goto line {offset}"
             if opcode == 0x20: # NZ
                 self.write_code(f" != 0 then {todo}")
@@ -138,12 +141,12 @@ class AST:
                 data[reg_order[dst]] = data[reg_order[src]]
         elif opcode == 0xEA: # LD (a16),A
             n_bytes = 3
-            n = code[2] | (code[1] << 8)
+            n = code[1 + self._endianness] | (code[2 - self._endianness] << 8)
             self.write_code(f"*{n:04X} := {self.rA}")
             data[f"*{n:04X}"] = self.rA
         elif opcode == 0xFA: # LD A,(a16)
             n_bytes = 3
-            n = code[2] | (code[1] << 8)
+            n = code[1 + self._endianness] | (code[2 - self._endianness] << 8)
             data["A"] = Expr("*", f"{n:04X}")
         elif opcode >= 0xC0 and opcode & 7 == 6:
             # these are all 2-byte commands operating on reg A
