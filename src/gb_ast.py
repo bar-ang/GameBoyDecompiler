@@ -27,7 +27,7 @@ class AST:
         gen_code = self._gen_code
         if self._gen_code_line:
             gen_code.append("".join(self._gen_code_line))
-        return "\n".join(gen_code)
+        return "\n".join([f"    {c}" for c in gen_code])
 
     def write_code(self, code, break_line=True):
         self._gen_code_line.append(code)
