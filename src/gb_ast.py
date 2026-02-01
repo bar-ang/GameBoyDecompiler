@@ -233,7 +233,6 @@ class AST:
                     str_code = " ".join(f"{c:02X}" for c in code[:n_bytes])
                     raise Exception(f"Unknown instruction: {str_code}")
             self.write_code(f"@ {dis}")
-            print(f"unhandeled {n_bytes}-bytes opcode '{opcode:02X}'. Disassembled as '{dis}'.")
 
         return code[n_bytes:]
 
