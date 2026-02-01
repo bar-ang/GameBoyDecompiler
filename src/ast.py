@@ -33,7 +33,7 @@ class AST:
         self.write_code("}")
 
     def new_func(self, func_name):
-        self.write_code(f"}}\n\n{func_name}(){{")
+        self.write_code(f"}}\n\n{func_name}(){{") 
 
     def write_code(self, code, break_line=True):
         self._gen_code_line.append(code)
