@@ -6,12 +6,12 @@ class AST:
 
     REGS = ["A", "B", "C", "D", "E", "F", "H", "L", "PC", "SP"]
 
-    def __init__(self, main_func="main", endianness="little", **initial_data):
+    def __init__(self, endianness="little", **initial_data):
         assert endianness in ("big", "little")
 
         self._data = {r : r for r in self.REGS}
         self._data.update(initial_data)
-        self._gen_code = [f"{main_func}(){{"]
+        self._gen_code = []
         self._gen_code_line = []
         self._endianness = 0 if endianness == "little" else 1
 
@@ -27,18 +27,12 @@ class AST:
         gen_code = self._gen_code
         if self._gen_code_line:
             gen_code.append("".join(self._gen_code_line))
-        return "\n".join(gen_code) + "\n}"
-
-    def close_scope(self):
-        self.write_code("}")
-
-    def new_func(self, func_name):
-        self.write_code(f"}}\n\n{func_name}(){{") 
+        return "\n".join(gen_code)
 
     def write_code(self, code, break_line=True):
         self._gen_code_line.append(code)
         if break_line:
-            self._gen_code.append("    " + "".join(self._gen_code_line))
+            self._gen_code.append("".join(self._gen_code_line))
             self._gen_code_line = []
 
     @property
