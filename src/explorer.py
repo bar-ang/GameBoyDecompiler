@@ -23,12 +23,6 @@ def explore(file, pc_start=0x100, main_func="main"):
     funcmap[main_func] = (pc_start, end)
 
     return funcmap
-#{
-#    main: (begin, end)
-#    UNREACHABLE0: (0x192, end)
-#    UNREACHABLE1: (0x4020, end)
-#    Gerbil (Func_0): (begin, end)
-#}
 
 
 if __name__ == "__main__":
