@@ -18,12 +18,12 @@ def extract_func_calling(buff):
 
 def identify_func(file, pc_start):
     ret_opcodes = (0xC0, 0xC8, 0xC9, 0xD0, 0xD8, 0xD9)
-    f.seek(pc_start)
+    file.seek(pc_start)
     buff = b""
 
     ret_idx = None
     while not ret_idx:
-        r = f.read(CHUNK_SIZE)
+        r = file.read(CHUNK_SIZE)
         assert r, "EOF and RET not identified"
         buff += r
         ret_idx = next(
@@ -47,11 +47,11 @@ def explore(file, pc_start=0x100, main_func="main"):
     calls = []
     buff = b""
 
-    f.seek(pc_start)
+    file.seek(pc_start)
 
     jr_pos = None
     while not jr_pos:
-        r = f.read(CHUNK_SIZE)
+        r = file.read(CHUNK_SIZE)
         assert r, "EOF and function not identified"
         buff += r
         jr_pos = search_inf_loop(buff)
@@ -63,8 +63,10 @@ def explore(file, pc_start=0x100, main_func="main"):
 
     return funcmap
 
-
-if __name__ == "__main__":
-    with open("example.gb", "rb") as f:
+def main():
+    with open("mrdriller.gbc", "rb") as f:
         funcmap = explore(f)
     print("\n".join([f"{fun}: {s[0]} (+{s[1]})" for fun, s in funcmap.items()]))
+
+if __name__ == "__main__":
+    main()
