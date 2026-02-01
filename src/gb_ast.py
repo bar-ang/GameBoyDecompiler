@@ -215,6 +215,14 @@ class AST:
         elif opcode == 0x00:
             # NOP command, do nothing
             n_bytes = 1
+        elif opcode == 0xC9:
+            # uncoditional RET commands, already handled by the explorer
+            n_bytes = 1
+        elif opcode == 0xCD:
+            # unconditional CALL
+            n_bytes = 3
+            n = code[1 + self._endianness] | (code[2 - self._endianness] << 8)
+            self.write_code(f"fun_{n:04X}()")
         else:
             dis = ""
             n_bytes = 0
