@@ -212,7 +212,9 @@ class AST:
         elif opcode == 0xF2: # LD A, (C)
             n_bytes = 2
             data["A"] = Expr("*", Expr("+", "FF00", self.get_data("C")))
-
+        elif opcode == 0x00:
+            # NOP command, do nothing
+            n_bytes = 1
         else:
             dis = ""
             n_bytes = 0
