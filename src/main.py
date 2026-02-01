@@ -1,4 +1,4 @@
-from ast import AST
+from gb_ast import AST
 from lr35902dis import lr35902 as disassembler
 
 GB_FILE = "example.gb"
