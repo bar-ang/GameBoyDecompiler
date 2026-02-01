@@ -7,20 +7,59 @@ def search_inf_loop(buff):
             return i
     return None
 
+def extract_func_calling(buff):
+    res = []
+    call_opcodes = (0xC4, 0xCC, 0xCD, 0xD4, 0xDC)
+    for i, opcode in enumerate(buff[:-2]):
+        if opcode in call_opcodes:
+            res.append(buff[i+1] | (buff[i+2] << 8))
+
+    return list(set(res))
+
+def identify_func(file, pc_start):
+    ret_opcodes = (0xC0, 0xC8, 0xC9, 0xD0, 0xD8, 0xD9)
+    f.seek(pc_start)
+    buff = b""
+
+    ret_idx = None
+    while not ret_idx:
+        r = f.read(CHUNK_SIZE)
+        assert r, "EOF and RET not identified"
+        buff += r
+        ret_idx = next(
+            (i for i, op in enumerate(buff) if op in ret_opcodes),
+            None
+        )
+
+    return buff[:ret_idx+1]
+
+def map_all_funcs(file, calls):
+    funcs = {}
+    for call in calls:
+        code = identify_func(file, call)
+        more_calls = extract_func_calling(code)
+        funcs.update(map_all_funcs(file, more_calls))
+        funcs[f"fun_{call:04X}"] = (call, len(code))
+    return funcs
+
 def explore(file, pc_start=0x100, main_func="main"):
     funcmap = {}
+    calls = []
+    buff = b""
 
     f.seek(pc_start)
 
     jr_pos = None
     while not jr_pos:
-        buff = f.read(CHUNK_SIZE)
-        assert buff, "EOF and function not identified"
+        r = f.read(CHUNK_SIZE)
+        assert r, "EOF and function not identified"
+        buff += r
         jr_pos = search_inf_loop(buff)
 
-    print(buff[jr_pos:jr_pos+2])
-    end = pc_start + jr_pos
-    funcmap[main_func] = (pc_start, end)
+    calls = extract_func_calling(buff)
+
+    funcmap[main_func] = (pc_start, jr_pos)
+    funcmap.update(map_all_funcs(file, calls))
 
     return funcmap
 
