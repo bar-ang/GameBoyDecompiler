@@ -86,8 +86,7 @@ class AST:
                     data["A"] = Expr("|", self.rA, b)
                 else:
                     # It's CP cmd
-                    expr = Expr("-", self.rA, b)
-                    self.write_code(f"if {expr}", break_line=False)
+                    data["F"] = Expr("-", self.rA, b)
             else:
                 raise Exception(f"opcode considered as 8-bit arithmatic, but failed to process: {opcode}")
         elif opcode & 0xF0 in {0x20, 0x30} and opcode & 7 == 0:
@@ -100,26 +99,26 @@ class AST:
             elif offset < 0:
                 todo = f"go back {-offset} lines"
             if opcode == 0x20: # NZ
-                self.write_code(f" != 0 then {todo}")
+                self.write_code(f"if {self.rA} != 0 then {todo}")
             elif opcode == 0x30: # NC
-                self.write_code(f" >= 0 then {todo}")
+                self.write_code(f"if {self.rA} >= 0 then {todo}")
             elif opcode == 0x21: # Z
-                self.write_code(f" == 0 then {todo}")
+                self.write_code(f"if {self.rA} == 0 then {todo}")
             else:                # C
-                self.write_code(f" < 0 then {todo}")
+                self.write_code(f"if {self.rA} < 0 then {todo}")
         elif opcode & 0xF0 in {0xC0, 0xD0} and opcode & 7 == 2:
             # these are the conditional JP commands
             n_bytes = 3
             offset = code[1 + self._endianness] | (code[2 - self._endianness] << 8)
             todo = f"goto line {offset}"
             if opcode == 0x20: # NZ
-                self.write_code(f" != 0 then {todo}")
+                self.write_code(f"if {self.rA} != 0 then {todo}")
             elif opcode == 0x30: # NC
-                self.write_code(f" >= 0 then {todo}")
+                self.write_code(f"if {self.rA} >= 0 then {todo}")
             elif opcode == 0x21: # Z
-                self.write_code(f" == 0 then {todo}")
+                self.write_code(f"if {self.rA} == 0 then {todo}")
             else:                # C
-                self.write_code(f" < 0 then {todo}")
+                self.write_code(f"if {self.rA} < 0 then {todo}")
         elif opcode >= 0x40 and opcode <= 0x80:
             assert opcode != 0x76
             # most 8-bit load commands have opcodes $40-$7f
