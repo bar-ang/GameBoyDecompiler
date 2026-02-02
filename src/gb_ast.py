@@ -209,6 +209,17 @@ class AST:
             else:
                 value = (code[2 - self._endianness] << 8) | code[1 + self._endianness]
                 data["SP"] = f"{value:04X}"
+        elif opcode < 0x40 and opcode & 0x7 == 3:
+            # 16 bits INC and DEC
+            n_bytes = 1
+            reg_order = ["BC", "DE", "HL", "SP"]
+            reg = reg_order[opcode >> 4]
+            sign = "++" if opcode & 0xF == 3 else "--"
+            if reg != "SP":
+                # TODO: this doesn't take care of overflow!!!!!!!!!!!!!
+                data[reg[1]] = Expr(sign, data[reg[1]], postpositive=True)
+            else:
+                data["SP"] = Expr(sign, data["SP"], postpositive=True)
         elif opcode == 0xE0: # LDH (addr), A
             n_bytes = 2
             deref = f"*FF{code[1]:02X}"
