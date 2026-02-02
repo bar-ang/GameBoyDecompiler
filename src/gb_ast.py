@@ -240,7 +240,7 @@ class AST:
                 if n_bytes > 3:
                     str_code = " ".join(f"{c:02X}" for c in code[:n_bytes])
                     raise Exception(f"Unknown instruction: {str_code}")
-            self.write_code(f"@ {dis}")
+            self.write_code(f"{dis}()\t\t// native asm op")
 
         return code[n_bytes:]
 
