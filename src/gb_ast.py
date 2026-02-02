@@ -229,7 +229,7 @@ class AST:
             data["SP"] = Expr("-2", data["SP"], postpositive=True)
             data[reg] = ":)"
         elif opcode >= 0xC0 and opcode & 0xF == 5:
-            # POP commands
+            # PUSH commands
             print(f"{opcode:02X}: command is not properly implemented. expects bugs.")
             n_bytes = 1
             reg_order = ["BC", "DE", "HL", "AF"]
