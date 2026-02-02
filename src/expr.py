@@ -35,3 +35,44 @@ class Expr:
 
         return f"{a_str}{self.op}{b_str}" if not self._postpositive else f"{a_str}{b_str}{self.op}"
 
+    def optimize(self):
+        op = self.op
+
+        if type(self.a) == Expr:
+            opt_a = self.a.optimize()
+        else:
+            opt_a = self.a
+
+        if self.b is not None and type(self.b) == Expr:
+            opt_b = self.b.optimize()
+        else:
+            opt_b = self.b
+
+
+        if not opt_b and type(opt_a) != Expr:
+            val = int(opt_a, 16)
+            if val:
+                if op == "++":
+                    return f"{(val+1):02X}"
+                elif op == "--":
+                    return f"{(val-1):02X}"
+
+        elif opt_b is not None and type(opt_b) != Expr and type(opt_a) != Expr: 
+            val_a = int(opt_a, 16)
+            val_b = int(opt_b, 16)
+            if val_a and val_b:
+                if op == "+" or op == "+`":
+                    return f"{(val_a+val_b):02X}"
+                elif op == "-" or op == "-`":
+                    return f"{(val_a-val_b):02X}"
+                elif op == "&":
+                    return f"{(val_a&val_b):02X}"
+                elif op == "^":
+                    return f"{(val_a^val_b):02X}"
+                elif op == "|":
+                    return f"{(val_a|val_b):02X}"
+                elif op == "==":
+                    return f"{int(val_a==val_b):02X}"
+
+        return Expr(self.op, opt_a, opt_b, postpositive=self._postpositive)
+
