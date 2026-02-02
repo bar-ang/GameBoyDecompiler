@@ -220,6 +220,19 @@ class AST:
                 data[reg[1]] = Expr(sign, data[reg[1]], postpositive=True)
             else:
                 data["SP"] = Expr(sign, data["SP"], postpositive=True)
+        elif opcode >= 0xC0 and opcode & 0xF == 1:
+            # POP commands
+            n_bytes = 1
+            reg_order = ["BC", "DE", "HL", "AF"]
+            reg = reg_order[(opcode & 0x30) >> 4]
+            data["SP"] = Expr("-2", data["SP"], postpositive=True)
+            data[reg] = ":)"
+        elif opcode >= 0xC0 and opcode & 0xF == 5:
+            # POP commands
+            n_bytes = 1
+            reg_order = ["BC", "DE", "HL", "AF"]
+            reg = reg_order[(opcode & 0x30) >> 4]
+            data["SP"] = Expr("+2", data["SP"], postpositive=True)
         elif opcode == 0xE0: # LDH (addr), A
             n_bytes = 2
             deref = f"*FF{code[1]:02X}"
