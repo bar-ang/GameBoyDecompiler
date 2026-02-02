@@ -1,5 +1,4 @@
 from expr import Expr
-from opcodes import *
 from lr35902dis import lr35902 as disassembler
 
 class AST:
