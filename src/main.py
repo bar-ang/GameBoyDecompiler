@@ -35,6 +35,8 @@ def main():
     print(ast.decompile())
     print("}\n")
 
+
+    print("\n".join(f"{k} = {v}" for k, v in ast._data.items()))
 #        for fun, pos in funcs.items():
 #            ast = AST()
 #            start, len = pos
