@@ -171,7 +171,11 @@ class AST:
 
             reg = ((opcode & 8) | (opcode & 0x30)) >> 3
             op = opcode & 3
-            data[reg_order[reg]] = Expr(op_order[op], data[reg_order[reg]], postpositive=True)
+            if reg_order[reg] != "[HL]":
+                data[reg_order[reg]] = Expr(op_order[op], data[reg_order[reg]], postpositive=True)
+            else:
+                data[self.get_data("HL")] = Expr(op_order[op], Expr("*", self.get_data("HL")))
+
         elif opcode < 0x40 and opcode & 7 == 6:
             # 2-bytes LD commands
             n_bytes = 2
@@ -205,7 +209,10 @@ class AST:
 
             reg = opcode & 7
             beta =  ((opcode & 8) | (opcode & 0xF)) >> 3
-            data[reg_order[reg]] = Expr(f"β{beta}", self.get_data(reg_order[reg]))
+            if reg_order[reg] != "[HL]":
+                data[reg_order[reg]] = Expr(f"β{beta}", self.get_data(reg_order[reg]))
+            else:
+                data[self.get_data("HL")] = Expr(f"β{beta}", Expr("*", self.get_data("HL")))
         elif opcode < 0x40 and opcode & 0xF == 1:
             # 16 bits immediate value LD commands
             n_bytes = 3
