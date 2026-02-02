@@ -200,7 +200,8 @@ class AST:
             data[reg_order[reg]] = Expr(f"β{beta}", self.get_data(reg_order[reg]))
         elif opcode == 0xE0: # LDH (addr), A
             n_bytes = 2
-            deref = Expr("*", self.get_data(opcode[1]))
+            deref = f"*FF{code[1]:02X}"
+            data[deref] = self.rA
             self.write_code(f"{deref} := {self.rA}")
         elif opcode == 0xF0: # LDH A, (addr)
             n_bytes = 2
