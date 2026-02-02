@@ -24,12 +24,17 @@ class AST:
                 d1 = self._data[reg[0]]
                 d2 = self._data[reg[1]]
 
-            return Expr(".", d1, d2)
+            return Expr(".", d1, d2).optimize()
 
         if not self._strict:
-            return self._data.get(reg, "??" + reg + "??")
+            res = self._data.get(reg, "??" + reg + "??")
         else:
-            return self._data[reg]
+            res = self._data[reg]
+
+        if type(res) == Expr:
+            res = res.optimize()
+
+        return res
 
     def decompile(self):
         gen_code = self._gen_code
