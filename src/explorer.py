@@ -74,7 +74,7 @@ def explore(file, pc_start=0x100, main_func="main"):
 def main():
     with open("mrdriller.gbc", "rb") as f:
         funcmap = explore(f)
-    print("\n".join([f"{fun}: {s[0]} (+{s[1]})" for fun, s in funcmap.items()]))
+    print("\n".join([f"{fun}: ${s[0]:04X} (+{s[1]})" for fun, s in funcmap.items()]))
 
 if __name__ == "__main__":
     main()
