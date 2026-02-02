@@ -6,7 +6,7 @@ class AST:
 
     REGS = ["A", "B", "C", "D", "E", "F", "H", "L", "PC", "SP"]
 
-    def __init__(self, endianness="little", **initial_data):
+    def __init__(self, endianness="little", strict=True, **initial_data):
         assert endianness in ("big", "little")
 
         self._data = {r : r for r in self.REGS}
@@ -14,14 +14,23 @@ class AST:
         self._gen_code = []
         self._gen_code_line = []
         self._endianness = 0 if endianness == "little" else 1
+        self._strict = strict
 
     def get_data(self, reg):
         if reg not in self._data and reg in ("BC", "DE", "AF", "HL"):
-            d1 = self._data.get(reg[0], "??" + reg[0] + "??")
-            d2 = self._data.get(reg[1], "??" + reg[1] + "??")
+            if not self._strict:
+                d1 = self._data.get(reg[0], "??" + reg[0] + "??")
+                d2 = self._data.get(reg[1], "??" + reg[1] + "??")
+            else:
+                d1 = self._data[reg[0]]
+                d2 = self._data[reg[1]]
 
             return Expr(".", d1, d2)
-        return self._data.get(reg, "??" + reg + "??")
+
+        if not self._strict:
+            return self._data.get(reg, "??" + reg + "??")
+        else:
+            return self._data[reg]
 
     def decompile(self):
         gen_code = self._gen_code
