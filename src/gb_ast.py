@@ -203,8 +203,12 @@ class AST:
             n_bytes = 3
             reg_order = ["BC", "DE", "HL", "SP"]
             reg = reg_order[opcode >> 4]
-            data[reg[0]] = code[2 - self._endianness]
-            data[reg[1]] = code[1 + self._endianness]
+            if reg != "SP":
+                data[reg[0]] = f"{code[2 - self._endianness]:02X}"
+                data[reg[1]] = f"{code[1 + self._endianness]:02X}"
+            else:
+                value = (code[2 - self._endianness] << 8) | code[1 + self._endianness]
+                data["SP"] = f"{value:04X}"
         elif opcode == 0xE0: # LDH (addr), A
             n_bytes = 2
             deref = f"*FF{code[1]:02X}"
