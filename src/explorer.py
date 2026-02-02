@@ -42,12 +42,20 @@ def map_all_funcs(file, calls):
         funcs[f"fun_{call:04X}"] = (call, len(code))
     return funcs
 
+def handle_entry_point(file, pc_start, entry_point_size_bytes=4):
+    file.seek(pc_start)
+    entry = file.read(entry_point_size_bytes)
+    return entry[2] | (entry[3] << 8)
+
+
 def explore(file, pc_start=0x100, main_func="main"):
     funcmap = {}
     calls = []
     buff = b""
 
-    file.seek(pc_start)
+    main_start = handle_entry_point(file, pc_start)
+
+    file.seek(main_start)
 
     jr_pos = None
     while not jr_pos:
@@ -58,7 +66,7 @@ def explore(file, pc_start=0x100, main_func="main"):
 
     calls = extract_func_calling(buff)
 
-    funcmap[main_func] = (pc_start, jr_pos)
+    funcmap[main_func] = (main_start, jr_pos)
     funcmap.update(map_all_funcs(file, calls))
 
     return funcmap
