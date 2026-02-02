@@ -1,7 +1,9 @@
 import re
 
 class Expr:
-    def __init__(self, op, a, b=None, *, postpositive=False):
+    def __init__(self, op: str, a, b=None, *, postpositive=False):
+        assert type(a) in (Expr, str), type(a)
+        assert b is None or type(b) in (Expr, str), type(b)
         self.op = op
         self.a = a
         self.b = b
