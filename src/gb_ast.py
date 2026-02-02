@@ -198,6 +198,13 @@ class AST:
             reg = opcode & 7
             beta =  ((opcode & 8) | (opcode & 0xF)) >> 3
             data[reg_order[reg]] = Expr(f"β{beta}", self.get_data(reg_order[reg]))
+        elif opcode < 0x40 and opcode & 0xF == 1:
+            # 16 bits immediate value LD commands
+            n_bytes = 3
+            reg_order = ["BC", "DE", "HL", "SP"]
+            reg = reg_order[opcode >> 4]
+            data[reg[0]] = code[2 - self._endianness]
+            data[reg[1]] = code[1 + self._endianness]
         elif opcode == 0xE0: # LDH (addr), A
             n_bytes = 2
             deref = f"*FF{code[1]:02X}"
