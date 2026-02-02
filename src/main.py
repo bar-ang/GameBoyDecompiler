@@ -6,11 +6,11 @@ GB_FILE = "example.gb"
 CHUNK_SIZE = 1024
 
 def main():
-    ast = AST()
     with open(GB_FILE, "rb") as f:
         funcs = explore(f)
 
         for fun, pos in funcs.items():
+            ast = AST()
             start, len = pos
             f.seek(start)
             code = f.read(len)
