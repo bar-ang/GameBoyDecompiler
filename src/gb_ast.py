@@ -210,6 +210,7 @@ class AST:
                 data["SP"] = f"{value:04X}"
         elif opcode < 0x40 and opcode & 0x7 == 3:
             # 16 bits INC and DEC
+            print(f"{opcode:02X}: command is not properly implemented. expects bugs.")
             n_bytes = 1
             reg_order = ["BC", "DE", "HL", "SP"]
             reg = reg_order[opcode >> 4]
@@ -221,6 +222,7 @@ class AST:
                 data["SP"] = Expr(sign, data["SP"], postpositive=True)
         elif opcode >= 0xC0 and opcode & 0xF == 1:
             # POP commands
+            print(f"{opcode:02X}: command is not properly implemented. expects bugs.")
             n_bytes = 1
             reg_order = ["BC", "DE", "HL", "AF"]
             reg = reg_order[(opcode & 0x30) >> 4]
@@ -228,6 +230,7 @@ class AST:
             data[reg] = ":)"
         elif opcode >= 0xC0 and opcode & 0xF == 5:
             # POP commands
+            print(f"{opcode:02X}: command is not properly implemented. expects bugs.")
             n_bytes = 1
             reg_order = ["BC", "DE", "HL", "AF"]
             reg = reg_order[(opcode & 0x30) >> 4]
