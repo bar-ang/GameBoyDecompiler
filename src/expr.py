@@ -76,3 +76,11 @@ class Expr:
 
         return Expr(self.op, opt_a, opt_b, postpositive=self._postpositive)
 
+
+if __name__ == "__main__":
+    expr = Expr("+",
+                Expr("--", "07", postpositive=True),
+                "10")
+    print(expr)
+    print(expr.optimize())
+    print(expr)
