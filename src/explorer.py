@@ -96,8 +96,14 @@ def explore(file, pc_start=0x100, main_func="main"):
     return funcmap
 
 def main():
-    with open("mrdriller.gbc", "rb") as f:
+    with open("example2.gb", "rb") as f:
         funcmap = explore(f)
+        pos, len = funcmap["main"]
+        f.seek(pos)
+        buff = f.read(len)
+        print(" ".join([f"{i}:{c:02X}" for i, c in enumerate(buff)]))
+        print(identify_flow_control(buff))
+
     print("\n".join([f"{fun}: ${s[0]:04X} (+{s[1]})" for fun, s in funcmap.items()]))
 
 if __name__ == "__main__":
