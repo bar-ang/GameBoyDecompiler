@@ -33,6 +33,30 @@ def identify_func(file, pc_start):
 
     return buff[:ret_idx+1]
 
+def identify_flow_control(buff, pc_start=0):
+    assert not any([ret_op in buff for ret_op in (0xC0, 0xC8, 0xC9, 0xD0, 0xD8, 0xD9)])
+    jr_opcodes = {
+        0x20: "!= 0",
+        0x30: ">= 0",
+        0x28: "== 0",
+        0x38: "< 0",
+        0x18: "uncond"
+    }
+    assert buff[-1] not in jr_opcodes.keys()
+
+    ifs = []
+    loops = []
+
+    for i, op in enumerate(buff[:-1]):
+        if op in jr_opcodes.keys():
+            if buff[i+1] < 128:
+                ifs.append((i+pc_start, buff[i+1]))
+            else:
+                neg = buff[i+1] - 256
+                loops.append((i+ buff[i+1] - 254 + pc_start, 256 - buff[i+1]))
+
+    return dict(ifs=ifs, loops=loops)
+
 def map_all_funcs(file, calls):
     funcs = {}
     for call in calls:
