@@ -4,7 +4,7 @@ def search_inf_loop(buff):
     for i, opcode in enumerate(buff[:-1]):
         if opcode == 0x18 and buff[i+1] >= 128:
             # absolute JR to previous location
-            return i
+            return i+2
     return None
 
 def extract_func_calling(buff):
