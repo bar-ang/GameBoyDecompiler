@@ -50,10 +50,10 @@ def identify_flow_control(buff, pc_start=0):
     for i, op in enumerate(buff[:-1]):
         if op in jr_opcodes.keys():
             if buff[i+1] < 128:
-                ifs.append((i+pc_start, buff[i+1]))
+                ifs.append((i+pc_start+2, buff[i+1]))
             else:
                 neg = buff[i+1] - 256
-                loops.append((i+ buff[i+1] - 254 + pc_start, 256 - buff[i+1]))
+                loops.append((i+ buff[i+1] - 254 + pc_start, 256 - buff[i+1]-2))
 
     return dict(ifs=ifs, loops=loops)
 
