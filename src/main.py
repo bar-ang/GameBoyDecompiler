@@ -2,7 +2,7 @@ from gb_ast import AST
 from explorer import explore, identify_flow_control
 from lr35902dis import lr35902 as disassembler
 
-GB_FILE = "example.gb"
+GB_FILE = "example2.gb"
 CHUNK_SIZE = 1024
 
 def insert_scope(code, tab_size=4):
