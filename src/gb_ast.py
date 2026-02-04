@@ -63,12 +63,10 @@ class AST:
         opcode = code[0]
         data = self._data
 
-        scope_update = self._scope_data.get(self.pc, 0)
-        if scope_update > 0:
-            self.enter_scope()
-        elif scope_update < 0:
+        if self.pc in self._scope_data["closes"]:
             self.exit_scope()
-
+        if self.pc in self._scope_data["opens"]:
+            self.enter_scope()
 
         if opcode == 0x76: # HALT
             return code[1:]

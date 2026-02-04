@@ -10,9 +10,9 @@ def insert_scope(code, tab_size=4):
     return "{\n" + "\n".join(prefix + line for line in code.splitlines()) + "\n}"
 
 def convert_to_scope_data(scopes):
-    starts = {t[0]: 1 for v in scopes.values() for t in v}
-    ends = {sum(t): -1 for v in scopes.values() for t in v}
-    return {**starts, **ends}
+    opens = [t[0] for v in scopes.values() for t in v]
+    closes = [sum(t) for v in scopes.values() for t in v]
+    return dict(opens=opens, closes=closes)
 
 def main():
     with open(GB_FILE, "rb") as f:
