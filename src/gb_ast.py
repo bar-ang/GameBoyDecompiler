@@ -5,7 +5,7 @@ class AST:
 
     REGS = ["A", "B", "C", "D", "E", "F", "H", "L", "PC", "SP"]
 
-    def __init__(self, initial_scope=0, scope_data={}, endianness="little", strict=True, pc_start=0, **initial_data):
+    def __init__(self, code=None, initial_scope=0, scope_data={}, endianness="little", strict=True, pc_start=0, **initial_data):
         assert endianness in ("big", "little")
 
         self._data = {r : r for r in self.REGS}
@@ -16,6 +16,9 @@ class AST:
         self._pc = pc_start
         self._scope_data = scope_data.copy()
         self._scope_level = initial_scope
+
+        if code is not None:
+            self.process_all(code)
 
     def get_data(self, reg):
         if reg not in self._data and reg in ("BC", "DE", "AF", "HL"):
