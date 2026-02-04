@@ -288,6 +288,12 @@ class AST:
         elif opcode == 0xC9:
             # uncoditional RET commands, already handled by the explorer
             n_bytes = 1
+        elif opcode == 0x18:
+            #unconditional JR
+            n_bytes = 2
+            assert code[1] >= 128, "not yet implemented."
+            if code[1] >= 128: # jump back
+                self.write_code("while(true)")
         elif opcode == 0xCD:
             # unconditional CALL
             n_bytes = 3
