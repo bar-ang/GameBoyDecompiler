@@ -5,15 +5,17 @@ class AST:
 
     REGS = ["A", "B", "C", "D", "E", "F", "H", "L", "PC", "SP"]
 
-    def __init__(self, endianness="little", strict=True, **initial_data):
+    def __init__(self, initial_scope=0, scope_data={}, endianness="little", strict=True, pc_start=0, **initial_data):
         assert endianness in ("big", "little")
 
         self._data = {r : r for r in self.REGS}
         self._data.update(initial_data)
         self._gen_code = []
-        self._gen_code_line = []
         self._endianness = 0 if endianness == "little" else 1
         self._strict = strict
+        self._pc = pc_start
+        self._scope_data = scope_data.copy()
+        self._scope_level = initial_scope
 
     def get_data(self, reg):
         if reg not in self._data and reg in ("BC", "DE", "AF", "HL"):
@@ -31,25 +33,39 @@ class AST:
         else:
             return self._data[reg]
 
-    def decompile(self):
-        gen_code = self._gen_code
-        if self._gen_code_line:
-            gen_code.append("".join(self._gen_code_line))
-        return "\n".join([f"    {c}" for c in gen_code])
+    def decompile(self, tabsize=4):
+        return "\n".join([" " * tabsize * scope + c for c, scope in self._gen_code])
 
-    def write_code(self, code, break_line=True):
-        self._gen_code_line.append(code)
-        if break_line:
-            self._gen_code.append("".join(self._gen_code_line))
-            self._gen_code_line = []
+    def write_code(self, code):
+        self._gen_code.append((code, self._scope_level))
+
+    def enter_scope(self):
+        self.write_code("{")
+        self._scope_level += 1
+
+    def exit_scope(self):
+        assert self._scope_level > 0
+        self._scope_level -= 1
+        self.write_code("}")
 
     @property
     def rA(self):
         return self._data.get("A", "!?A!?")
 
+    @property
+    def pc(self):
+        return self._pc
+
     def step(self, code):
         opcode = code[0]
         data = self._data
+
+        scope_update = self._scope_data.get(self.pc, 0)
+        if scope_update > 0:
+            self.enter_scope()
+        elif scope_update < 0:
+            self.exit_scope()
+
 
         if opcode == 0x76: # HALT
             return code[1:]
@@ -287,6 +303,7 @@ class AST:
                     raise Exception(f"Unknown instruction: {str_code}")
             self.write_code(f"{dis}()\t\t// native asm op")
 
+        self._pc += n_bytes
         return code[n_bytes:]
 
     def process_all(self, code):
