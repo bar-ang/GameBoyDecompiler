@@ -1,3 +1,4 @@
+import sys
 from gb_ast import AST
 from explorer import explore, identify_flow_control
 from lr35902dis import lr35902 as disassembler
@@ -14,8 +15,8 @@ def convert_to_scope_data(scopes):
     closes = [sum(t) for v in scopes.values() for t in v]
     return dict(opens=opens, closes=closes)
 
-def main():
-    with open(GB_FILE, "rb") as f:
+def main(gb_file):
+    with open(gb_file, "rb") as f:
         funcs = explore(f)
 
         for fun, pos in funcs.items():
@@ -27,6 +28,11 @@ def main():
             print(f"{fun}() {insert_scope(ast.decompile())}")
             print(flow, convert_to_scope_data(flow))
 
+    return 0
 
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) < 2:
+        print("provide gb file")
+        sys.exit(-1)
+    sys.exit(main(sys.argv[1]))
+
