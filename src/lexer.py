@@ -307,7 +307,6 @@ class Instruction(ABC):
     def match(opcode: int) -> bool:
         pass
 
-    register()
 
 class InstALU(Instruction):
     @staticmethod
