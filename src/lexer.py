@@ -69,10 +69,10 @@ def consume(code, endianness="little"):
         op = OP_ORDER[(opcode & 0x38) >> 3]
         if opcode & 7 == 6: # has memory access: op a, (HL)
 
-            return InstALUDirect(op, "A"), code[n_bytes:]
+            return InstALUDirect(op), code[n_bytes:]
         reg = REG_ORDER[opcode & 7]
 
-        return InstALU(op, "A", reg), code[n_bytes:]
+        return InstALU(op, reg), code[n_bytes:]
 
     elif opcode & 0xF0 in {0x20, 0x30} and opcode & 7 == 0:
         # these are the conditional JR commands
@@ -222,7 +222,7 @@ def consume(code, endianness="little"):
         reg_order = ["BC", "DE", "HL", "SP"]
         reg = opcode >> 4
 
-        return InstALU16bit("ADD", "HL", reg_order[reg]), code[n_bytes:]
+        return InstALU16bit("ADD", reg_order[reg]), code[n_bytes:]
 
     elif opcode == 0xE8:
         # ADD SP, r8
@@ -288,7 +288,7 @@ def consume(code, endianness="little"):
         n_bytes = 3
         n = attach_two_bytes(code[1:3], endianness)
 
-        return InstCall("CALL", imm=n), code[n_bytes:]
+        return InstCall("CALL", addr=n), code[n_bytes:]
 
     elif opcode & 0xF0 in {0xC0, 0xD0} and opcode & 7 == 4:
         # Conditional CALL
@@ -296,7 +296,7 @@ def consume(code, endianness="little"):
         pc = attach_two_bytes(code[1:3], endianness)
         cond = COND_ORDER[(opcode & 0x18) >> 3]
 
-        return InstConitionalCall("CALL", imm=pc, cond=cond), code[n_bytes:]
+        return InstConitionalCall("CALL", addr=pc, cond=cond), code[n_bytes:]
 
 
     raise Exception(f"Unknown instruction: {opcode:02X}")
@@ -313,129 +313,265 @@ class Instruction(ABC):
         self.cond = cond
 
     def __str__(self):
-        return f"{self.op} {self.cond} {self.regl}, {self.regr}, {self.imm:02x}, ({self.addr:04x})"
+        return f"[[GENERIC]] {self.op} {self.cond} {self.regl}, {self.regr}, {self.imm:02x}, ({self.addr:04x})"
+
+
+class InstFamilyOpOnly(Instruction):
+    def __init__(self, op):
+        return super().__init__(op)
+
+    def __str__(self):
+        return f"{self.op}"
+
+
+class InstFamilySingleReg(Instruction):
+    def __init__(self, op, reg="A"):
+        return super().__init__(op, reg)
+
+    def __str__(self):
+        return f"{self.op} {self.regl}"
+
+
+class InstFamilyTwoRegs(Instruction):
+    def __init__(self, op, regl="A", regr="A"):
+        return super().__init__(op, regl, regr)
+
+    def __str__(self):
+        return f"{self.op} {self.regl}, {self.regr}"
+
+
+class InstFamilyRegWithImmediate(Instruction):
+    def __init__(self, op, reg="A", imm="0"):
+        return super().__init__(op, reg, imm=imm)
+
+    def __str__(self):
+        return f"{self.op} {self.regl}, ${self.imm:04x}"
+
+
+class InstFamilyAddr(Instruction):
+    def __init__(self, op, addr):
+        return super().__init__(op, addr=addr)
+
+    def __str__(self):
+        return f"{self.op} ${self.addr:04x}"
+
+
+class InstFamilyDirect(Instruction):
+    def __init__(self, op, reg):
+        return super().__init__(op, reg)
+
+    def __str__(self):
+        return f"{self.op} ({self.regl})"
+
+
+class InstFamilyStoreReg(Instruction):
+    def __init__(self, op, regl, regr):
+        return super().__init__(op, regl, regr)
+
+    def __str__(self):
+        return f"{self.op} ({self.regl}), {self.reg}"
+
+
+class InstFamilyLoadReg(Instruction):
+    def __init__(self, op, regl, regr):
+        return super().__init__(op, regl, regr)
+
+    def __str__(self):
+        return f"{self.op} {self.regl}, ({self.reg})"
+
+
+class InstFamilyStoreImm(Instruction):
+    def __init__(self, op, regl, imm):
+        return super().__init__(op, regl, imm=imm)
+
+    def __str__(self):
+        return f"{self.op} ({self.regl}), ${self.imm:02x}"
+
+
+class InstFamilyLoadImm(Instruction):
+    def __init__(self, op, imm, regr):
+        return super().__init__(op, regr=regr, imm=m)
+
+    def __str__(self):
+        return f"{self.op} (${self.imm:04x}), {self.regr}"
+
+
+class InstFamilyStoreImm(Instruction):
+    def __init__(self, op, reg, imm):
+        return super().__init__(op, reg, imm=imm)
+
+    def __str__(self):
+        return f"{self.op} {self.regl}, ${self.imm:04x}"
+
+
+class InstFamilyCondition(Instruction):
+    def __init__(self, op, cond, addr=0):
+        return super().__init__(op, cond=cond, addr=addr)
+
+    def __str__(self):
+        return f"{self.op} {self.cond}, ${self.addr:04x}"
+
+
 
 class InstALUregSP(Instruction):
     # NOTE: a rare command (E8h), barely used
     pass
 
-class InstALU(Instruction):
-    pass
 
-class InstALU16bit(Instruction):
-    pass
-
-class InstALUDirect(Instruction):
-    pass
-
-class InstALUImmediate(Instruction):
-    pass
-
-class InstIncDec(Instruction):
-    pass
-
-class InstIncDecDirect(Instruction):
-    pass
-
-class InstIncDec16bit(Instruction):
-    pass
-
-class InstCBPrefixDirect(Instruction):
-    pass
-
-class InstCBPrefix(Instruction):
-    pass
-
-class InstRelJumpConditional(Instruction):
-    pass
-
-class InstAbsJumpConditional(Instruction):
-    pass
-
-class InstRelJump(Instruction):
-    pass
-
-class InstAbsJump(Instruction):
+class InstALU(InstFamilyTwoRegs):
     pass
 
 
-class InstPush(Instruction):
+class InstALU16bit(InstFamilyTwoRegs):
     pass
 
-class InstPop(Instruction):
+
+class InstALUDirect(InstFamilyLoadReg):
     pass
 
-class InstLoadSPToHL(Instruction):
+
+class InstALUImmediate(InstFamilyRegWithImmediate):
+    pass
+
+
+class InstIncDec(InstFamilySingleReg):
+    pass
+
+
+class InstIncDecDirect(InstFamilyDirect):
+    pass
+
+
+class InstIncDec16bit(InstFamilySingleReg):
+    pass
+
+
+class InstCBPrefixDirect(InstFamilyDirect):
+    pass
+
+
+class InstCBPrefix(InstFamilySingleReg):
+    pass
+
+
+class InstRelJumpConditional(InstFamilyCondition):
+    pass
+
+
+class InstAbsJumpConditional(InstFamilyCondition):
+    pass
+
+
+class InstRelJump(InstFamilyAddr):
+    pass
+
+
+class InstAbsJump(InstFamilyAddr):
+    pass
+
+
+class InstPush(InstFamilySingleReg):
+    pass
+
+
+class InstPop(InstFamilySingleReg):
+    pass
+
+
+#class InstLoadSPToHL(InstFamilyRegWithImmediate):
     # NOTE: a rare command (F8h), barely used
-    pass
+#    def __str__(self):
+#        return f"{self.op} {self.regl}, SP+${self.imm:02x}"
 
-class InstLoadImmediate16bit(Instruction):
-    pass
 
-class InstLoadImmediate(Instruction):
-    pass
-
-class InstLoadDirect(Instruction):
-    pass
-
-class InstLoadRegToReg(Instruction):
+class InstLoadImmediate16bit(InstFamilyRegWithImmediate):
     pass
 
 
-class InstLoadRegToHL(Instruction):
+class InstLoadImmediate(InstFamilyRegWithImmediate):
     pass
 
 
-class InstLoadHLToReg(Instruction):
+class InstLoadDirect(InstFamilyLoadReg):
     pass
 
-class InstLoadRegToHLI(Instruction):
+
+class InstLoadRegToReg(InstFamilyTwoRegs):
     pass
 
-class InstLoadHLIToReg(Instruction):
+
+class InstLoadRegToHL(InstFamilyStoreReg):
     pass
 
-class InstLoad16bit(Instruction):
+
+class InstLoadHLToReg(InstFamilyLoadReg):
     pass
 
-class InstStore16bit(Instruction):
+
+class InstLoadRegToHLI(InstFamilyStoreReg):
     pass
 
-class InstLoadAddr(Instruction):
+
+class InstLoadHLIToReg(InstFamilyLoadReg):
     pass
 
-class InstStoreAddr(Instruction):
+
+class InstLoad16bit(InstFamilyLoadImm):
     pass
 
-class InstHighLoad(Instruction):
+
+class InstStore16bit(InstFamilyStoreImm):
     pass
 
-class InstHighStore(Instruction):
+
+class InstLoadAddr(InstFamilyLoadImm):
     pass
 
-class InstHighCStore(Instruction):
+
+class InstStoreAddr(InstFamilyStoreImm):
     pass
 
-class InstHighCLoad(Instruction):
+
+class InstHighLoad(InstFamilyLoadImm):
     pass
 
-class InstReset(Instruction):
+
+class InstHighStore(InstFamilyStoreImm):
     pass
 
-class InstControl(Instruction):
+
+class InstHighCStore(InstFamilyStoreReg):
     pass
 
-class InstCall(Instruction):
+
+class InstHighCLoad(InstFamilyLoadReg):
     pass
 
-class InstRet(Instruction):
+
+class InstReset(InstFamilyRegWithImmediate):
     pass
 
-class InstConitionalRet(Instruction):
+
+class InstControl(InstFamilyOpOnly):
     pass
 
-class InstConitionalCall(Instruction):
+
+class InstCall(InstFamilyAddr):
     pass
+
+
+class InstRet(InstFamilyOpOnly):
+    pass
+
+
+class InstConitionalRet(InstFamilyCondition):
+    def __str__(self):
+        return f"{self.op} {self.cond}"
+
+
+class InstConitionalCall(InstFamilyCondition):
+    pass
+
 
 def main(gb_file):
     with open(gb_file, "rb") as f:
