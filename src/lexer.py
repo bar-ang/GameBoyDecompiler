@@ -406,7 +406,10 @@ class instRet(Instruction):
 def main(gb_file):
     with open(gb_file, "rb") as f:
         code = f.read(0xa0)
-    print(code)
+
+    while len(code) > 0:
+        inst, code = consume(code)
+        print(inst)
 
     return 0
 
