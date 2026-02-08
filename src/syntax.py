@@ -11,7 +11,7 @@ class Instruction(ABC):
         self.cond = cond
 
     def __str__(self):
-        return f"[[GENERIC]] {self.op} {self.cond} {self.regl}, {self.regr}, {self.imm:02x}, ({self.addr:04x})"
+        return f"{self.op} {self.cond} {self.regl}, {self.regr}, {self.imm:02x}, ({self.addr:04x})"
 
 
 class InstFamilyOpOnly(Instruction):
