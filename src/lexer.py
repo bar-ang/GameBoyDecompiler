@@ -302,13 +302,20 @@ def consume(code, endianness="little"):
     raise Exception(f"Unknown instruction: {opcode:02X}")
 
 
+def tokenize_code(code):
+    tokcode = []
+    while len(code) > 0:
+        inst, code = consume(code)
+        tokcode.append(inst)
+
+    return tokcode
+
 def main(gb_file):
     with open(gb_file, "rb") as f:
         code = f.read(0x100)
 
-    while len(code) > 0:
-        inst, code = consume(code)
-        print(inst)
+    toks = tokenize_code(code)
+    print("\n".join([str(t) for t in toks]))
 
     return 0
 
