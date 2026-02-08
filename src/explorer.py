@@ -71,10 +71,14 @@ def explore(file, pc_start=0x100, main_func="main"):
 
     return funcmap
 
-def main():
-    with open("mrdriller.gbc", "rb") as f:
+def main(gb_file):
+    with open(gb_file, "rb") as f:
         funcmap = explore(f)
     print("\n".join([f"{fun}: ${s[0]:04X} (+{s[1]})" for fun, s in funcmap.items()]))
 
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) < 2:
+        print("provide gb file")
+        sys.exit(-1)
+
+    sys.exit(main(sys.argv[1]))
