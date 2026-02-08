@@ -111,7 +111,7 @@ class InstFamilyCondition(Instruction):
 
 
 
-class InstALUregSP(Instruction):
+class InstALUregSP(InstFamilyRegWithImmediate):
     # NOTE: a rare command (E8h), barely used
     pass
 
