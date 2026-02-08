@@ -304,7 +304,7 @@ def consume(code, endianness="little"):
 
 def main(gb_file):
     with open(gb_file, "rb") as f:
-        code = f.read(0xa0)
+        code = f.read(0x100)
 
     while len(code) > 0:
         inst, code = consume(code)
