@@ -46,7 +46,7 @@ def consume(code, endianness="little"):
         return InstALU("DAA"), code[1:]
 
     elif opcode == 0x37:
-        return InstALU("SCD"), code[1:]
+        return InstALU("SCF"), code[1:]
 
     elif opcode == 0x2F:
         return InstALU("CPL"), code[1:]
@@ -72,7 +72,7 @@ def consume(code, endianness="little"):
             return InstALUDirect(op), code[n_bytes:]
         reg = REG_ORDER[opcode & 7]
 
-        return InstALU(op, reg), code[n_bytes:]
+        return InstALU(op, regr=reg), code[n_bytes:]
 
     elif opcode & 0xF0 in {0x20, 0x30} and opcode & 7 == 0:
         # these are the conditional JR commands
@@ -222,13 +222,13 @@ def consume(code, endianness="little"):
         reg_order = ["BC", "DE", "HL", "SP"]
         reg = opcode >> 4
 
-        return InstALU16bit("ADD", reg_order[reg]), code[n_bytes:]
+        return InstALU16bit("ADD", "HL", reg_order[reg]), code[n_bytes:]
 
     elif opcode == 0xE8:
         # ADD SP, r8
         n_bytes = 2
 
-        return InstALUregSP("ADD", "SP", f"{code[1]:02x}"), code[n_bytes:]
+        return InstALUregSP("ADD", "SP", code[1]), code[n_bytes:]
 
     elif opcode >= 0xC0 and opcode & 0xF == 1:
         # POP commands
