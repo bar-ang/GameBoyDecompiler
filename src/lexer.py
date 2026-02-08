@@ -135,13 +135,13 @@ def consume(code, endianness="little"):
         n_bytes = 3
         n = attach_two_bytes(code[1:3], endianness)
 
-        return InstStoreAddr("LD (store)", addr=n), code[n_bytes:]
+        return InstStoreAddr("LD (store)", reg="A", imm=n), code[n_bytes:]
 
     elif opcode == 0xFA: # LD A,(a16)
         n_bytes = 3
         n = attach_two_bytes(code[1:3], endianness)
 
-        return InstLoadAddr("LD (load)", addr=n), code[n_bytes:]
+        return InstLoadAddr("LD (load)", imm=n, reg="A"), code[n_bytes:]
 
     elif opcode >= 0xC0 and opcode & 7 == 6:
         # these are all 2-byte commands operating on reg A

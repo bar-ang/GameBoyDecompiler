@@ -63,7 +63,7 @@ class InstFamilyDirect(Instruction):
 
 
 class InstFamilyStoreReg(Instruction):
-    def __init__(self, op, regl, regr):
+    def __init__(self, op, regl="HL", regr="A"):
         return super().__init__(op, regl, regr)
 
     def __str__(self):
@@ -71,24 +71,24 @@ class InstFamilyStoreReg(Instruction):
 
 
 class InstFamilyLoadReg(Instruction):
-    def __init__(self, op, regl, regr):
+    def __init__(self, op, regl="A", regr="HL"):
         return super().__init__(op, regl, regr)
 
     def __str__(self):
-        return f"{self.op} {self.regl}, ({self.reg})"
+        return f"{self.op} {self.regl}, ({self.regr})"
 
 
 class InstFamilyStoreImm(Instruction):
-    def __init__(self, op, regl, imm):
-        return super().__init__(op, regl, imm=imm)
+    def __init__(self, op, reg, imm):
+        return super().__init__(op, regr=reg, imm=imm)
 
     def __str__(self):
         return f"{self.op} ({self.regl}), ${self.imm:02x}"
 
 
 class InstFamilyLoadImm(Instruction):
-    def __init__(self, op, imm, regr):
-        return super().__init__(op, regr=regr, imm=m)
+    def __init__(self, op, imm, reg):
+        return super().__init__(op, regl=reg, imm=imm)
 
     def __str__(self):
         return f"{self.op} (${self.imm:04x}), {self.regr}"
@@ -214,11 +214,11 @@ class InstLoadHLIToReg(InstFamilyLoadReg):
     pass
 
 
-class InstLoad16bit(InstFamilyLoadImm):
+class InstLoad16bit(InstFamilyLoadReg):
     pass
 
 
-class InstStore16bit(InstFamilyStoreImm):
+class InstStore16bit(InstFamilyStoreReg):
     pass
 
 
