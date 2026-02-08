@@ -39,7 +39,7 @@ class InstFamilyTwoRegs(Instruction):
 
 
 class InstFamilyRegWithImmediate(Instruction):
-    def __init__(self, op, reg="A", imm="0"):
+    def __init__(self, op, reg="A", imm=0):
         return super().__init__(op, reg, imm=imm)
 
     def __str__(self):
