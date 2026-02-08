@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 
 class Instruction(ABC):
 
-    def __init__(self, op, regl=None, regr=None, *, imm=0, addr=0, cond=""):
+    def __init__(self, op:str, regl:str=None, regr:str=None, *, imm:int=0, addr:int=0, cond:str=""):
         self.op = op
         self.regl = regl
         self.regr = regr
