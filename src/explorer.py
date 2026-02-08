@@ -1,3 +1,6 @@
+import lexer
+import sys
+
 CHUNK_SIZE = 256
 
 def search_inf_loop(buff):
@@ -42,26 +45,32 @@ def map_all_funcs(file, calls):
         funcs[f"fun_{call:04X}"] = (call, len(code))
     return funcs
 
-def handle_entry_point(file, pc_start, entry_point_size_bytes=4):
-    file.seek(pc_start)
-    entry = file.read(entry_point_size_bytes)
-    return entry[2] | (entry[3] << 8)
+def handle_entry_point(tokens, pc_start):
+    start = tokens[pc_start]
+    if start.op not in {"JR", "JP"}:
+        pc_start += 1
+        start = tokens[pc_start]
+
+    assert start.op in {"JR", "JP"}, f"unexpected of '{str(start)}' on entry point"
+
+    if start.op == "JP":
+        return start.addr
+    else:
+        return start.addr + pc_start
 
 
-def explore(file, pc_start=0x100, main_func="main"):
+def explore(tokens, pc_start=0x100, main_func="main"):
     funcmap = {}
     calls = []
-    buff = b""
+    buff = []
 
-    main_start = handle_entry_point(file, pc_start)
-
-    file.seek(main_start)
+    main_start = handle_entry_point(tokens, pc_start)
 
     jr_pos = None
     while not jr_pos:
         r = file.read(CHUNK_SIZE)
         assert r, "EOF and function not identified"
-        buff += r
+        buff += lexer.tokenize_code(r)
         jr_pos = search_inf_loop(buff)
 
     calls = extract_func_calling(buff)
@@ -73,7 +82,9 @@ def explore(file, pc_start=0x100, main_func="main"):
 
 def main(gb_file):
     with open(gb_file, "rb") as f:
-        funcmap = explore(f)
+        f.seek(0x100)
+        tokens = lexer.tokenize_code(f.read())
+    funcmap = explore(tokens)
     print("\n".join([f"{fun}: ${s[0]:04X} (+{s[1]})" for fun, s in funcmap.items()]))
 
 if __name__ == "__main__":
