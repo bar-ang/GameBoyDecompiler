@@ -2,6 +2,14 @@ import syntax
 import lexer
 import sys
 
+def make_slice(tokens, start, length):
+    slice = []
+    for i in range(start, start+length):
+        tok = tokens.get(i, None)
+        if tok:
+            slice.append(tok)
+    return slice
+
 def search_inf_loop(tokens, main_start):
     pc = main_start
     while True:
@@ -38,7 +46,7 @@ def map_all_funcs(tokens, calls):
         flen = identify_func_len(tokens, call)
         more_calls = extract_func_calling(tokens, call, flen)
         funcs.update(map_all_funcs(tokens, more_calls))
-        funcs[f"fun_{call:04X}"] = (call, flen)
+        funcs[f"fun_{call:04X}"] = make_slice(tokens, call, flen)
     return funcs
 
 def handle_entry_point(tokens, pc_start):
@@ -66,7 +74,7 @@ def explore(tokens, pc_start=0x100, main_func="main"):
 
     calls = extract_func_calling(tokens, main_start, jr_pos - main_start)
 
-    funcmap[main_func] = (main_start, jr_pos)
+    funcmap[main_func] = make_slice(tokens, main_start, jr_pos - main_start)
     funcmap.update(map_all_funcs(tokens, calls))
 
     return funcmap
