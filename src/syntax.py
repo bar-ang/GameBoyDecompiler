@@ -157,7 +157,10 @@ class InstCBPrefix(InstFamilySingleReg):
 
 
 class InstRelJumpConditional(InstFamilyCondition):
-    pass
+    def __init__(self, op, cond, addr):
+        if addr >= 128:
+            addr = addr - 256
+        return super().__init__(op, cond=cond, addr=addr)
 
 
 class InstAbsJumpConditional(InstFamilyCondition):
