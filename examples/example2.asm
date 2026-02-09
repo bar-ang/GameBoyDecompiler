@@ -16,6 +16,12 @@ proc:
 	ld a, $44
 	ld [$4f4f], a
 
+oopsy:
+	inc a
+	inc b
+	inc c
+	jr nc, oopsy
+
 	jr proc
 
 REPT 20
