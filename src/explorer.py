@@ -15,12 +15,13 @@ def search_inf_loop(tokens, main_start):
             return pc
         pc += 1
 
-def extract_func_calling(buff):
+def extract_func_calling(tokens, start, length):
     res = []
-    call_opcodes = (0xC4, 0xCC, 0xCD, 0xD4, 0xDC)
-    for i, opcode in enumerate(buff[:-2]):
-        if opcode in call_opcodes:
-            res.append(buff[i+1] | (buff[i+2] << 8))
+
+    for i in range(start, start+length):
+        tok = tokens.get(i, None)
+        if tok and type(tok) in {syntax.InstCall, syntax.InstConitionalCall}:
+            res.append(tok.addr)
 
     return list(set(res))
 
@@ -73,7 +74,7 @@ def explore(tokens, pc_start=0x100, main_func="main"):
 
     jr_pos = search_inf_loop(tokens, main_start)
 
-    calls = extract_func_calling(buff)
+    calls = extract_func_calling(tokens, main_start, jr_pos - main_start)
 
     funcmap[main_func] = (main_start, jr_pos)
     funcmap.update(map_all_funcs(file, calls))
