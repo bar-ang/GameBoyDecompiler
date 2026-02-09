@@ -1,14 +1,19 @@
+import syntax
 import lexer
 import sys
 
 CHUNK_SIZE = 256
 
-def search_inf_loop(buff):
-    for i, opcode in enumerate(buff[:-1]):
-        if opcode == 0x18 and buff[i+1] >= 128:
-            # absolute JR to previous location
-            return i
-    return None
+def search_inf_loop(tokens, main_start):
+    pc = main_start
+    while True:
+        token = tokens.get(pc, None)
+        print(pc, token)
+        if token and \
+           ((type(token) == syntax.InstAbsJump and token.addr <= pc) or \
+            (type(token) == syntax.InstRelJump and token.addr <= 0)):
+            return pc
+        pc += 1
 
 def extract_func_calling(buff):
     res = []
@@ -66,12 +71,7 @@ def explore(tokens, pc_start=0x100, main_func="main"):
 
     main_start = handle_entry_point(tokens, pc_start)
 
-    jr_pos = None
-    while not jr_pos:
-        r = file.read(CHUNK_SIZE)
-        assert r, "EOF and function not identified"
-        buff += lexer.tokenize_code(r)
-        jr_pos = search_inf_loop(buff)
+    jr_pos = search_inf_loop(tokens, main_start)
 
     calls = extract_func_calling(buff)
 
