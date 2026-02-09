@@ -8,7 +8,6 @@ def search_inf_loop(tokens, main_start):
     pc = main_start
     while True:
         token = tokens.get(pc, None)
-        print(pc, token)
         if token and \
            ((type(token) == syntax.InstAbsJump and token.addr <= pc) or \
             (type(token) == syntax.InstRelJump and token.addr <= 0)):
