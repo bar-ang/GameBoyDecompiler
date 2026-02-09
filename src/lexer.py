@@ -311,10 +311,14 @@ def tokenize_code(code, start_pc=0):
     tokcode = {}
     pc = start_pc
     while len(code) > 0:
-        prevlen = len(code)
-        inst, code = consume(code)
-        tokcode[pc] = inst
-        pc += prevlen - len(code)
+        try:
+            prevlen = len(code)
+            inst, code = consume(code)
+            tokcode[pc] = inst
+            pc += prevlen - len(code)
+        except UnknownInstructionException:
+            code = code[1:]
+            pc += 1
 
     return tokcode
 
