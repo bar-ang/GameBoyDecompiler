@@ -25,30 +25,21 @@ def extract_func_calling(tokens, start, length):
 
     return list(set(res))
 
-def identify_func(file, pc_start):
-    ret_opcodes = (0xC0, 0xC8, 0xC9, 0xD0, 0xD8, 0xD9)
-    file.seek(pc_start)
-    buff = b""
+def identify_func_len(tokens, pc_start):
+    pc = pc_start
+    while True:
+        tok = tokens.get(pc, None)
+        if tok and type(tok) == syntax.InstRet:
+            return pc - pc_start
+        pc += 1
 
-    ret_idx = None
-    while not ret_idx:
-        r = file.read(CHUNK_SIZE)
-        assert r, "EOF and RET not identified"
-        buff += r
-        ret_idx = next(
-            (i for i, op in enumerate(buff) if op in ret_opcodes),
-            None
-        )
-
-    return buff[:ret_idx+1]
-
-def map_all_funcs(file, calls):
+def map_all_funcs(tokens, calls):
     funcs = {}
     for call in calls:
-        code = identify_func(file, call)
-        more_calls = extract_func_calling(code)
-        funcs.update(map_all_funcs(file, more_calls))
-        funcs[f"fun_{call:04X}"] = (call, len(code))
+        flen = identify_func_len(tokens, call)
+        more_calls = extract_func_calling(tokens, call, flen)
+        funcs.update(map_all_funcs(tokens, more_calls))
+        funcs[f"fun_{call:04X}"] = (call, flen)
     return funcs
 
 def handle_entry_point(tokens, pc_start):
@@ -77,7 +68,7 @@ def explore(tokens, pc_start=0x100, main_func="main"):
     calls = extract_func_calling(tokens, main_start, jr_pos - main_start)
 
     funcmap[main_func] = (main_start, jr_pos)
-    funcmap.update(map_all_funcs(file, calls))
+    funcmap.update(map_all_funcs(tokens, calls))
 
     return funcmap
 
