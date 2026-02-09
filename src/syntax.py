@@ -3,12 +3,16 @@ from abc import ABC, abstractmethod
 class Instruction(ABC):
 
     def __init__(self, op:str, regl:str=None, regr:str=None, *, imm:int=0, addr:int=0, cond:str=""):
-        self.op = op
+        self._op = op
         self.regl = regl
         self.regr = regr
         self.imm = imm
         self.addr = addr
         self.cond = cond
+
+    @property
+    def op(self):
+        return self._op
 
     def __str__(self):
         return f"{self.op} {self.cond} {self.regl}, {self.regr}, {self.imm:02x}, ({self.addr:04x})"
