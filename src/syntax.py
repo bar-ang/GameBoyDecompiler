@@ -59,7 +59,7 @@ class InstFamilyAddr(Instruction):
 
 
 class InstFamilyDirect(Instruction):
-    def __init__(self, op, reg):
+    def __init__(self, op, reg="HL"):
         return super().__init__(op, reg)
 
     def __str__(self):
@@ -82,20 +82,20 @@ class InstFamilyLoadReg(Instruction):
         return f"{self.op} {self.regl}, ({self.regr})"
 
 
-class InstFamilyStoreImm(Instruction):
-    def __init__(self, op, reg, imm):
-        return super().__init__(op, regr=reg, imm=imm)
+class InstFamilyStoreAddr(Instruction):
+    def __init__(self, op, addr, reg):
+        return super().__init__(op, regr=reg, addr=addr)
 
     def __str__(self):
-        return f"{self.op} ({self.regl}), ${self.imm:02x}"
+        return f"{self.op} ({self.addr:04x}), ${self.regr}"
 
 
-class InstFamilyLoadImm(Instruction):
-    def __init__(self, op, imm, reg):
-        return super().__init__(op, regl=reg, imm=imm)
+class InstFamilyLoadAddr(Instruction):
+    def __init__(self, op, reg, addr):
+        return super().__init__(op, regl=reg, addr=addr)
 
     def __str__(self):
-        return f"{self.op} (${self.imm:04x}), {self.regr}"
+        return f"{self.op} {self.regr}, (${self.addr:04x})"
 
 
 class InstFamilyStoreImm(Instruction):
@@ -215,6 +215,14 @@ class InstLoadHLIToReg(InstFamilyLoadReg):
     pass
 
 
+class InstLoadImmediateDirect(Instruction):
+    def __init__(self, op, imm, reg="HL"):
+        return super().__init__(op, regl=reg, imm=imm)
+
+    def __str__(self):
+        return f"{self.op} ({self.regl}), {self.imm:02x}"
+    
+
 class InstLoad16bit(InstFamilyLoadReg):
     pass
 
@@ -223,19 +231,19 @@ class InstStore16bit(InstFamilyStoreReg):
     pass
 
 
-class InstLoadAddr(InstFamilyLoadImm):
+class InstLoadAddr(InstFamilyLoadAddr):
     pass
 
 
-class InstStoreAddr(InstFamilyStoreImm):
+class InstStoreAddr(InstFamilyStoreAddr):
     pass
 
 
-class InstHighLoad(InstFamilyLoadImm):
+class InstHighLoad(InstFamilyLoadAddr):
     pass
 
 
-class InstHighStore(InstFamilyStoreImm):
+class InstHighStore(InstFamilyStoreAddr):
     pass
 
 

@@ -140,13 +140,13 @@ def consume(code, endianness="little"):
         n_bytes = 3
         n = attach_two_bytes(code[1:3], endianness)
 
-        return InstStoreAddr("LD (store)", reg="A", imm=n), code[n_bytes:]
+        return InstStoreAddr("LD (store)", reg="A", addr=n), code[n_bytes:]
 
     elif opcode == 0xFA: # LD A,(a16)
         n_bytes = 3
         n = attach_two_bytes(code[1:3], endianness)
 
-        return InstLoadAddr("LD (load)", imm=n, reg="A"), code[n_bytes:]
+        return InstLoadAddr("LD (load)", addr=n, reg="A"), code[n_bytes:]
 
     elif opcode >= 0xC0 and opcode & 7 == 6:
         # these are all 2-byte commands operating on reg A
@@ -175,11 +175,11 @@ def consume(code, endianness="little"):
 
         reg = ((opcode & 8) | (opcode & 0x30)) >> 3
         if reg == 6: # reg is [HL]
-            cmd = InstLoadDirect
+            cmd = InstLoadImmediateDirect
         else:
             cmd = InstLoadImmediate
 
-        return cmd("LD", REG_ORDER[reg], imm=code[1]), code[n_bytes:]
+        return cmd("LD", reg=REG_ORDER[reg], imm=code[1]), code[n_bytes:]
 
     elif opcode < 0x40 and opcode & 7 == 2:
         # these are LD commands that involve 16-bit regs
@@ -255,13 +255,13 @@ def consume(code, endianness="little"):
         # LDH (addr), A
         n_bytes = 2
 
-        return InstHighStore("LDH (store)", code[1]), code[n_bytes:]
+        return InstHighStore("LDH (store)", reg="A", addr=code[1]), code[n_bytes:]
 
     elif opcode == 0xF0:
         # LDH A, (addr)
         n_bytes = 2
 
-        return InstHighStore("LDH (load)", code[1]), code[n_bytes:]
+        return InstHighStore("LDH (load)", reg="A", addr=code[1]), code[n_bytes:]
 
     elif opcode == 0xE2:
         # LD (C), A
