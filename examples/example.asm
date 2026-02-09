@@ -4,6 +4,8 @@ SECTION "nothing", ROM0[0]
 	ENDR
 
 SECTION "main", ROM0[$100]
+	jp hithere
+hithere:
 	ld a, [$CAFE]
 	ld b, a
 	add a, 5
