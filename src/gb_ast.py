@@ -2,7 +2,7 @@ from expr import Expr
 from lr35902dis import lr35902 as disassembler
 
 class ASTNode:
-    def __init__(self, op, scope=[], **args):
+    def __init__(self, op, scope, **args):
         self.op = op
         self.scope = scope
         self.args = args
@@ -16,8 +16,8 @@ class ASTNode:
         assert False, "unhandled"
 
 
-def astBuilder(explored_tokens):
-    head = ASTNode("initial")
+def build_ast(explored_tokens):
+    scope = []
     for func, content in explored_tokens.items():
-        head.scope.append(ASTNode("func", name=func)
-
+        scope.append(ASTNode("func", name=func, scope=[]))
+    return ASTNode("initial", scope=scope)
