@@ -84,7 +84,11 @@ def main(gb_file):
     tokens = lexer.tokenize_code(readed)
     print("exploring function:")
     funcmap = explore(tokens)
-    print("\n".join([f"{fun}: ${s[0]:04X} (+{s[1]})" for fun, s in funcmap.items()]))
+    print(
+        "\n".join([
+            f"{fun}[\n{"\n".join(["\t"+str(c) for c in cont])}\n]" for fun, cont in funcmap.items()
+        ])
+    )
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
