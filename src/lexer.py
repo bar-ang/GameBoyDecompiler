@@ -307,11 +307,14 @@ def consume(code, endianness="little"):
     raise UnknownInstructionException(f"Unknown instruction: {opcode:02X}")
 
 
-def tokenize_code(code):
-    tokcode = []
+def tokenize_code(code, start_pc=0):
+    tokcode = {}
+    pc = start_pc
     while len(code) > 0:
+        prevlen = len(code)
         inst, code = consume(code)
-        tokcode.append(inst)
+        tokcode[pc] = inst
+        pc += prevlen - len(code)
 
     return tokcode
 
