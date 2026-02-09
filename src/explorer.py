@@ -2,8 +2,6 @@ import syntax
 import lexer
 import sys
 
-CHUNK_SIZE = 256
-
 def search_inf_loop(tokens, main_start):
     pc = main_start
     while True:
