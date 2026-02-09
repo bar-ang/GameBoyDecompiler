@@ -183,12 +183,6 @@ class InstPop(InstFamilySingleReg):
     pass
 
 
-#class InstLoadSPToHL(InstFamilyRegWithImmediate):
-    # NOTE: a rare command (F8h), barely used
-#    def __str__(self):
-#        return f"{self.op} {self.regl}, SP+${self.imm:02x}"
-
-
 class InstLoadImmediate16bit(InstFamilyRegWithImmediate):
     pass
 
