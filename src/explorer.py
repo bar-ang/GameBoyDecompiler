@@ -74,7 +74,9 @@ def explore(tokens, pc_start=0x100, main_func="main"):
 def main(gb_file):
     with open(gb_file, "rb") as f:
         readed = f.read()
+    print("tokenizing code. this can take a few seconds...")
     tokens = lexer.tokenize_code(readed)
+    print("exploring function:")
     funcmap = explore(tokens)
     print("\n".join([f"{fun}: ${s[0]:04X} (+{s[1]})" for fun, s in funcmap.items()]))
 
