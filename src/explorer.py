@@ -5,6 +5,7 @@ import sys
 def search_inf_loop(tokens, main_start):
     pc = main_start
     while True:
+        assert pc - main_start < 10 ** 7
         token = tokens.get(pc, None)
         if token and \
            ((type(token) == syntax.InstAbsJump and token.addr <= pc) or \
@@ -25,6 +26,7 @@ def extract_func_calling(tokens, start, length):
 def identify_func_len(tokens, pc_start):
     pc = pc_start
     while True:
+        assert pc - pc_start < 10 ** 7
         tok = tokens.get(pc, None)
         if tok and type(tok) == syntax.InstRet:
             return pc - pc_start
