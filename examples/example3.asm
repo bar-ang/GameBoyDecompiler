@@ -2,7 +2,7 @@ SECTION "entry", ROM0[$100]
 	nop
 	jp main
 
-SECTION "the main", ROM0[$200]
+SECTION "the main", ROM0[$120]
 main:
 	ld a, $44
 	ld [$BABA], a
