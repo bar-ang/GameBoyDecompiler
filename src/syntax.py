@@ -165,7 +165,10 @@ class InstAbsJumpConditional(InstFamilyCondition):
 
 
 class InstRelJump(InstFamilyAddr):
-    pass
+    def __init__(self, op, addr):
+        if addr >= 128:
+            addr = addr - 256
+        return super().__init__(op, addr=addr)
 
 
 class InstAbsJump(InstFamilyAddr):
