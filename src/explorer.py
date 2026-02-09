@@ -65,8 +65,6 @@ def handle_entry_point(tokens, pc_start):
 
 def explore(tokens, pc_start=0x100, main_func="main"):
     funcmap = {}
-    calls = []
-    buff = []
 
     main_start = handle_entry_point(tokens, pc_start)
 
