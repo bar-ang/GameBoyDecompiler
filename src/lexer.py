@@ -12,6 +12,11 @@ COND_ORDER  = ["NZ", "Z", "NC", "C"]
 INC_ORDER   = ["INC", "DEC"]
 
 
+class UnknownInstructionException(Exception):
+    pass
+
+
+
 def attach_two_bytes(bts, endianness=0):
     return bts[endianness] | (bts[1 - endianness] << 8)
 
@@ -299,7 +304,7 @@ def consume(code, endianness="little"):
         return InstConitionalCall("CALL", addr=pc, cond=cond), code[n_bytes:]
 
 
-    raise Exception(f"Unknown instruction: {opcode:02X}")
+    raise UnknownInstructionException(f"Unknown instruction: {opcode:02X}")
 
 
 def tokenize_code(code):
