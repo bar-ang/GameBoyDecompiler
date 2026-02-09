@@ -7,7 +7,7 @@ def make_slice(tokens, start, length):
     for i in range(start, start+length):
         tok = tokens.get(i, None)
         if tok:
-            slice.append(tok)
+            slice.append((tok, i))
     return slice
 
 def search_inf_loop(tokens, main_start):
@@ -40,13 +40,55 @@ def identify_func_len(tokens, pc_start):
             return pc - pc_start
         pc += 1
 
+def deep_explore(slice):
+    gadgets = {}
+    res = []
+
+    # first we seek for backward jumps
+    for i, (inst, pc) in enumerate(slice):
+        if inst.op == "JR" and inst.addr < 0:
+            offset = -inst.addr
+            j = 0
+            count = 2
+            while count < offset:
+                count += slice[i][1] - slice[i-j][1]
+                j += 1
+
+            assert count == offset, (count, offset)
+            gadgets[i-j] = (slice[i-j: i], j)
+
+    # now forward jumps
+    i = 0
+    while i < len(slice):
+        inst, pc = slice[i]
+
+        if i in gadgets:
+            res.append(({"looppy loop": gadgets[i][0]}, pc))
+            i += gadgets[i][1]
+
+        elif inst.op == "JR":
+            if inst.addr > 0:
+                res.append(({
+                    "if something" : deep_explore(slice[i+1 : i+inst.addr])
+                }, pc))
+                i += inst.addr
+            else:
+                if inst.addr == 0:
+                    res.append(({"if something" : []}))
+                i += 1
+        else:
+            res.append((inst, pc))
+            i += 1
+
+    return res
+
 def map_all_funcs(tokens, calls):
     funcs = {}
     for call in calls:
         flen = identify_func_len(tokens, call)
         more_calls = extract_func_calling(tokens, call, flen)
         funcs.update(map_all_funcs(tokens, more_calls))
-        funcs[f"fun_{call:04X}"] = make_slice(tokens, call, flen)
+        funcs[f"fun_{call:04X}"] = deep_explore(make_slice(tokens, call, flen))
     return funcs
 
 def handle_entry_point(tokens, pc_start):
@@ -72,7 +114,7 @@ def explore(tokens, pc_start=0x100, main_func="main"):
 
     calls = extract_func_calling(tokens, main_start, jr_pos - main_start)
 
-    funcmap[main_func] = make_slice(tokens, main_start, jr_pos - main_start)
+    funcmap[main_func] = deep_explore(make_slice(tokens, main_start, jr_pos - main_start))
     funcmap.update(map_all_funcs(tokens, calls))
 
     return funcmap
