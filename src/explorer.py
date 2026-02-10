@@ -16,8 +16,8 @@ def search_inf_loop(tokens, main_start):
         assert pc - main_start < 10 ** 7
         token = tokens.get(pc, None)
         if token and \
-           ((type(token) == syntax.InstAbsJump and token.addr <= pc) or \
-            (type(token) == syntax.InstRelJump and token.addr <= 0)):
+           ((type(token) == syntax.InstAbsJump and token.addr < pc) or \
+            (type(token) == syntax.InstRelJump and token.addr < 0)):
             return pc
         pc += 1
 
