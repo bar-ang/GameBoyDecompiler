@@ -41,46 +41,40 @@ def identify_func_len(tokens, pc_start):
         pc += 1
 
 def deep_explore(slice):
-    gadgets = {}
     res = []
-
-    # first we seek for backward jumps
-    for i, (inst, pc) in enumerate(slice):
-        if inst.op == "JR" and inst.addr < 0:
-            offset = -inst.addr
-            j = 0
-            count = 2
-            while count < offset:
-                count += slice[i][1] - slice[i-j][1]
-                j += 1
-
-            assert count == offset, (count, offset)
-            gadgets[i-j] = (slice[i-j: i], j)
-
-    # now forward jumps
     i = 0
     while i < len(slice):
         inst, pc = slice[i]
-
-        if i in gadgets:
-            res.append(({"looppy loop": gadgets[i][0]}, pc))
-            i += gadgets[i][1]
-
-        elif inst.op == "JR":
-            if inst.addr > 0:
-                res.append(({
-                    "if something" : deep_explore(slice[i+1 : i+inst.addr])
-                }, pc))
-                i += inst.addr
-            else:
-                if inst.addr == 0:
-                    res.append(({"if something" : []}))
-                i += 1
+        if inst.op == "JR" and inst.addr >= 0:
+            j = 1
+            while slice[i+j][1] - pc < inst.addr + 2:
+                j += 1
+            assert slice[i+j][1] - pc == inst.addr + 2
+            res.append(({"@IF": slice[i:i+j]}, pc))
+            i += j
         else:
-            res.append((inst, pc))
+            res.append(slice[i])
             i += 1
 
-    return res
+    res2 = []
+    i = len(res) - 1
+    while i >= 0:
+        inst, pc = res[i]
+        if type(inst) is not dict and inst.op == "JR" and inst.addr < 0:
+            off = -inst.addr
+
+            j = 1
+            while pc - res[i-j][1] < off - 2:
+                j += 1
+
+            res2.append(({"@LOOP": res[i-j:i+1]}, res[i-j][1]))
+            i -= (j + 1)
+        else:
+            res2.append(res[i])
+            i -= 1
+
+
+    return res2[::-1]
 
 def map_all_funcs(tokens, calls):
     funcs = {}
