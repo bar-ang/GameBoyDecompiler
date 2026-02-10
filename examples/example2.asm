@@ -18,9 +18,18 @@ proc:
 
 oopsy:
 	inc a
+moreb:
 	inc b
+	jr c, moreb
 	inc c
 	jr nc, oopsy
+
+	xor a
+	jr kibali
+kibali:
+	xor b
+	xor c
+	xor d
 
 	jr proc
 
