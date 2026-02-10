@@ -119,6 +119,14 @@ def explore(tokens, pc_start=0x100, main_func="main"):
 
     return funcmap
 
+
+def funcmap_to_str(funcmap, depth=1):
+    def gothrough(cont):
+        return "\n".join("\t"*depth + f"{c[0] if type(c[0]) != dict else funcmap_to_str(c[0], depth=depth+1)}" for c in cont)
+    return "\n".join([
+        f"{fun}:\n{gothrough(cont)}" for fun, cont in funcmap.items()
+    ])
+
 def main(gb_file):
     with open(gb_file, "rb") as f:
         readed = f.read()
@@ -126,11 +134,7 @@ def main(gb_file):
     tokens = lexer.tokenize_code(readed)
     print("exploring function:")
     funcmap = explore(tokens)
-    print(
-        "\n".join([
-            f"{fun}[\n{"\n".join(["\t"+str(c) for c in cont])}\n]" for fun, cont in funcmap.items()
-        ])
-    )
+    print(funcmap_to_str(funcmap))
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
