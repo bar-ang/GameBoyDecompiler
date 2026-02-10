@@ -41,16 +41,19 @@ def identify_func_len(tokens, pc_start):
         pc += 1
 
 def deep_explore(slice):
+    if len(slice) < 2:
+        return slice
     res = []
     i = 0
     while i < len(slice):
         inst, pc = slice[i]
-        if inst.op == "JR" and inst.addr >= 0:
+        if type(inst) is not dict and inst.op == "JR" and inst.addr >= 0:
             j = 1
             while slice[i+j][1] - pc < inst.addr + 2:
                 j += 1
+            print(slice[i+j][1], i, j)
             assert slice[i+j][1] - pc == inst.addr + 2
-            res.append(({"@IF": slice[i:i+j]}, pc))
+            res.append(({f"@IF [{slice[i][0]}]": deep_explore(slice[i+1:i+j])}, pc))
             i += j
         else:
             res.append(slice[i])
@@ -67,7 +70,7 @@ def deep_explore(slice):
             while pc - res[i-j][1] < off - 2:
                 j += 1
 
-            res2.append(({"@LOOP": res[i-j:i+1]}, res[i-j][1]))
+            res2.append(({f"@LOOP [{res[i][0]}]": deep_explore(res[i-j:i])}, res[i-j][1]))
             i -= (j + 1)
         else:
             res2.append(res[i])
