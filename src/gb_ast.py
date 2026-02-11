@@ -46,9 +46,23 @@ class ASTNodeText(ASTNode):
     def __str__(self):
         return self.text
 
+def make_scope_for_func(content):
+    scope = []
+    for inst, _ in content:
+        if type(inst) is not dict:
+            scope.append(ASTNodeText(str(inst)))
+        else:
+            assert "type" in inst
+            assert inst["type"].upper() in ("IF", "LOOP")
+            inner_scope = make_scope_for_func(inst["content"])
+            if inst["type"].upper() == "IF":
+                scope.append(ASTNodeCondition(inner_scope))
+            else:
+                scope.append(ASTNodeLoop(inner_scope))
+    return scope
 
 def build_ast(explored_tokens):
     scope = []
     for func, content in explored_tokens.items():
-        scope.append(ASTNodeFunc(name=func, scope=[]))
+        scope.append(ASTNodeFunc(name=func, scope=make_scope_for_func(content)))
     return ASTNodeInitial(scope=scope)
