@@ -53,7 +53,12 @@ def deep_explore(slice):
                 j += 1
             print(slice[i+j][1], i, j)
             assert slice[i+j][1] - pc == inst.addr + 2
-            res.append(({f"@IF [{slice[i][0]}]": deep_explore(slice[i+1:i+j])}, pc))
+            res.append(({
+                "type": "IF",
+                "inst": slice[i][0],
+                "pc" : pc,
+                "content" : deep_explore(slice[i+1:i+j])
+            }, pc))
             i += j
         else:
             res.append(slice[i])
@@ -70,7 +75,12 @@ def deep_explore(slice):
             while pc - res[i-j][1] < off - 2:
                 j += 1
 
-            res2.append(({f"@LOOP [{res[i][0]}]": deep_explore(res[i-j:i])}, res[i-j][1]))
+            res2.append(({
+                "type": "LOOP",
+                "inst": res[i][0],
+                "pc": res[i-j][1],
+                "content": deep_explore(res[i-j:i])
+            }, res[i-j][1]))
             i -= (j + 1)
         else:
             res2.append(res[i])
@@ -117,13 +127,6 @@ def explore(tokens, pc_start=0x100, main_func="main"):
     return funcmap
 
 
-def funcmap_to_str(funcmap, depth=1):
-    def gothrough(cont):
-        return "\n".join("\t"*depth + f"{c[0] if type(c[0]) != dict else funcmap_to_str(c[0], depth=depth+1)}" for c in cont)
-    return "\n".join([
-        f"{fun}:\n{gothrough(cont)}" for fun, cont in funcmap.items()
-    ])
-
 def main(gb_file):
     with open(gb_file, "rb") as f:
         readed = f.read()
@@ -131,7 +134,7 @@ def main(gb_file):
     tokens = lexer.tokenize_code(readed)
     print("exploring function:")
     funcmap = explore(tokens)
-    print(funcmap_to_str(funcmap))
+    print("\n".join([f"{fun}: {"\n".join([f"\t{c[0]}" for c in cont])}" for fun, cont in funcmap.items()]))
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
