@@ -38,6 +38,15 @@ class ASTNodeCondition(ASTNode):
     def __str__(self):
         return f"if(...) {{\n{self.content()}\n}}"
 
+class ASTNodeText(ASTNode):
+    def __init__(self, text: str):
+        self.text = text
+        super().__init__(scope=[])
+
+    def __str__(self):
+        return self.text
+
+
 def build_ast(explored_tokens):
     scope = []
     for func, content in explored_tokens.items():
