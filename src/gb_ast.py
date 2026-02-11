@@ -26,16 +26,15 @@ class ASTNodeFunc(ASTNode):
         return f"{self.name} {{\n{tw.indent(self.content(), INDENT)}\n}}"
 
 class ASTNodeLoop(ASTNode):
-    def __init__(self, cond, scope):
+    def __init__(self, cond: ASTNode, scope):
         super().__init__(scope)
         self.cond = cond
 
     def __str__(self):
         return f"while({self.cond}) {{\n{tw.indent(self.content(), INDENT)}\n}}"
 
-
 class ASTNodeCondition(ASTNode):
-    def __init__(self, cond, scope):
+    def __init__(self, cond: ASTNode, scope):
         super().__init__(scope)
         self.cond = cond
 
@@ -59,10 +58,11 @@ def make_scope_for_func(content):
             assert "type" in inst
             assert inst["type"].upper() in ("IF", "LOOP")
             inner_scope = make_scope_for_func(inst["content"])
+            cond = ASTNodeText(str(inst["inst"]))
             if inst["type"].upper() == "IF":
-                scope.append(ASTNodeCondition(inst["inst"], inner_scope))
+                scope.append(ASTNodeCondition(cond, inner_scope))
             else:
-                scope.append(ASTNodeLoop(inst["inst"], inner_scope))
+                scope.append(ASTNodeLoop(cond, inner_scope))
     return scope
 
 def build_ast(explored_tokens):
