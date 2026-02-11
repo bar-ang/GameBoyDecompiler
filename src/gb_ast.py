@@ -1,19 +1,21 @@
+import textwrap as tw
 from expr import Expr
-from lr35902dis import lr35902 as disassembler
+
+INDENT = " " * 4
 
 class ASTNode:
     def __init__(self, scope):
         self.scope = scope
 
-    def content(self, depth=1):
-        return "\n".join(["\t"*depth + str(c) for c in self.scope])
+    def content(self):
+        return "\n".join([str(c) for c in self.scope])
 
     def __str__(self):
         return "???"
 
 class ASTNodeInitial(ASTNode):
     def __str__(self):
-        return self.content(0)
+        return self.content()
 
 class ASTNodeFunc(ASTNode):
     def __init__(self, name, scope):
@@ -21,7 +23,7 @@ class ASTNodeFunc(ASTNode):
         self.name = name
 
     def __str__(self):
-        return f"{self.name} {{\n{self.content()}\n}}"
+        return f"{self.name} {{\n{tw.indent(self.content(), INDENT)}\n}}"
 
 class ASTNodeLoop(ASTNode):
     def __init__(self, cond, scope):
@@ -29,7 +31,7 @@ class ASTNodeLoop(ASTNode):
         self.cond = cond
 
     def __str__(self):
-        return f"while({self.cond}) {{\n{self.content()}\n}}"
+        return f"while({self.cond}) {{\n{tw.indent(self.content(), INDENT)}\n}}"
 
 
 class ASTNodeCondition(ASTNode):
@@ -38,7 +40,7 @@ class ASTNodeCondition(ASTNode):
         self.cond = cond
 
     def __str__(self):
-        return f"if({self.cond}) {{\n{self.content()}\n}}"
+        return f"if({self.cond}) {{\n{tw.indent(self.content(), INDENT)}\n}}"
 
 class ASTNodeText(ASTNode):
     def __init__(self, text: str):
