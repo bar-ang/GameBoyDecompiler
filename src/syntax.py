@@ -17,16 +17,26 @@ class Regs(Enum):
 
 def create_initial_regmap():
     return {
-        Regs.A : 0x11,
-        Regs.B : 0,
-        Regs.C : 0,
-        Regs.D : 0xff,
-        Regs.E : 0x56,
-        Regs.F : 0x80,
-        Regs.H : 0,
-        Regs.L : 0xd,
-        Regs.SP : 0xfffe,
-        Regs.PC : 0x100,
+#        Regs.A : 0x11,
+#        Regs.B : 0,
+#        Regs.C : 0,
+#        Regs.D : 0xff,
+#        Regs.E : 0x56,
+#        Regs.F : 0x80,
+#        Regs.H : 0,
+#        Regs.L : 0xd,
+#        Regs.SP : 0xfffe,
+#        Regs.PC : 0x100,
+        "A" : 0x11,
+        "B" : 0,
+        "C" : 0,
+        "D" : 0xff,
+        "E" : 0x56,
+        "F" : 0x80,
+        "H" : 0,
+        "L" : 0xd,
+        "SP" : 0xfffe,
+        "PC" : 0x100,
     }
 
 class Instruction(ABC):
