@@ -87,7 +87,7 @@ class InstFamilyStoreAddr(Instruction):
         return super().__init__(op, regr=reg, addr=addr)
 
     def __str__(self):
-        return f"{self.op} ({self.addr:04x}), ${self.regr}"
+        return f"{self.op} (${self.addr:04x}), {self.regr}"
 
 
 class InstFamilyLoadAddr(Instruction):
