@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from expr import Expr
 from enum import Enum
 
 class Regs(Enum):
@@ -44,6 +45,9 @@ class Instruction(ABC):
 
     def __str__(self):
         return f"{self.op} {self.cond} {self.regl}, {self.regr}, {self.imm:02x}, ({self.addr:04x})"
+
+    def dry_run(self, regmap):
+        return None
 
 
 class InstFamilyOpOnly(Instruction):
@@ -165,7 +169,13 @@ class InstALUImmediate(InstFamilyRegWithImmediate):
 
 
 class InstIncDec(InstFamilySingleReg):
-    pass
+    def dry_run(self, regmap):
+        assert self.regl in regmap
+        val = regmap[self.regl]
+        sign = "+" if self.op.upper() == "INC" else "-"
+        val = Expr(sign, val, "1")
+        regmap[self.regl] = val
+        return None
 
 
 class InstIncDecDirect(InstFamilyDirect):
@@ -215,12 +225,17 @@ class InstPop(InstFamilySingleReg):
 
 
 class InstLoadImmediate16bit(InstFamilyRegWithImmediate):
-    pass
+    def dry_run(self, regmap):
+        assert self.reg in regmap
+        regmap[self.reg] = self.imm
 
+        return None
 
 class InstLoadImmediate(InstFamilyRegWithImmediate):
-    pass
-
+    def dry_run(self, regmap):
+        assert self.regl in regmap, self.regl
+        regmap[self.regl] = f"${self.imm:02x}"
+        return None
 
 class InstLoadDirect(InstFamilyLoadReg):
     pass
@@ -267,7 +282,10 @@ class InstLoadAddr(InstFamilyLoadAddr):
 
 
 class InstStoreAddr(InstFamilyStoreAddr):
-    pass
+    def dry_run(self, regmap):
+        assert self.regr in regmap
+        val = Expr(":=", f"${self.addr:04x}", regmap[self.regr])
+        return val
 
 
 class InstHighLoad(InstFamilyLoadAddr):
