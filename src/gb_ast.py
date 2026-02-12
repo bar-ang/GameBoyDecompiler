@@ -43,13 +43,13 @@ class ASTNodeIfStmt(ASTNode):
     def __str__(self):
         return f"if({self.cond}) {{\n{tw.indent(self.content(), INDENT)}\n}}"
 
-class ASTNodeInstruction(ASTNode):
-    def __init__(self, text: str):
-        self.text = text
+class ASTNodeExpression(ASTNode):
+    def __init__(self, expr: str):
+        self.expr = expr
         super().__init__(scope=[])
 
     def __str__(self):
-        return self.text
+        return str(self.expr)
 
 class ASTNodeText(ASTNode):
     def __init__(self, text: str):
@@ -81,15 +81,18 @@ class ASTNodeJumpHandler(ASTNode):
                 raise Exeption("unknown condition")
             return str(self.inst)
 
-def make_scope_for_func(content):
+def make_scope_for_func(content, regmap):
     scope = []
     for inst, _ in content:
         if type(inst) is not dict:
-            scope.append(ASTNodeText(str(inst)))
+            expr = inst.dry_run(regmap)
+            if expr:
+                node = ASTNodeExpression(expr)
+                scope.append(node)
         else:
             assert "type" in inst
             assert inst["type"].upper() in ("IF", "LOOP")
-            inner_scope = make_scope_for_func(inst["content"])
+            inner_scope = make_scope_for_func(inst["content"], regmap)
             cond = ASTNodeJumpHandler(inst["inst"])
             if inst["type"].upper() == "IF":
                 scope.append(ASTNodeIfStmt(cond, inner_scope))
@@ -99,6 +102,8 @@ def make_scope_for_func(content):
 
 def build_ast(explored_tokens):
     scope = []
+    regmap = syntax.create_initial_regmap()
     for func, content in explored_tokens.items():
-        scope.append(ASTNodeFunc(name=func, scope=make_scope_for_func(content)))
+        func_scope = make_scope_for_func(content, regmap)
+        scope.append(ASTNodeFunc(name=func, scope=func_scope))
     return ASTNodeInitial(scope=scope)
