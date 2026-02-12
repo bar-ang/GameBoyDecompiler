@@ -1,4 +1,32 @@
 from abc import ABC, abstractmethod
+from enum import Enum
+
+class Regs(Enum):
+    A = "A"
+    B = "B"
+    C = "C"
+    D = "D"
+    E = "E"
+    F = "F"
+    H = "H"
+    L = "L"
+
+    SP = "SP"
+    PC = "PC"
+
+def create_initial_regmap():
+    return {
+        Regs.A : 0x11,
+        Regs.B : 0,
+        Regs.C : 0,
+        Regs.D : 0xff,
+        Regs.E : 0x56,
+        Regs.F : 0x80,
+        Regs.H : 0,
+        Regs.L : 0xd,
+        Regs.SP : 0xfffe,
+        Regs.PC : 0x100,
+    }
 
 class Instruction(ABC):
 
