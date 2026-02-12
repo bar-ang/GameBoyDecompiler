@@ -43,6 +43,14 @@ class ASTNodeIfStmt(ASTNode):
     def __str__(self):
         return f"if({self.cond}) {{\n{tw.indent(self.content(), INDENT)}\n}}"
 
+class ASTNodeInstruction(ASTNode):
+    def __init__(self, text: str):
+        self.text = text
+        super().__init__(scope=[])
+
+    def __str__(self):
+        return self.text
+
 class ASTNodeText(ASTNode):
     def __init__(self, text: str):
         self.text = text
