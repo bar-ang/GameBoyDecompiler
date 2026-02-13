@@ -2,7 +2,6 @@ import sys
 from lexer import tokenize_code
 from explorer import explore
 from gb_ast import build_ast
-from lr35902dis import lr35902 as disassembler
 
 def print_debugging_data(code):
     print(" ".join([f"{c:02X}" for c in code]))
