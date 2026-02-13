@@ -17,5 +17,19 @@ start:
 	ld [$CEDE], a
 
 
+	ld a, [$CAFE]
+	ld b, a
+	ld a, [$ABBA]
+	ld c, a
+
+	push bc
+	pop de
+
+	ld a, d
+	ld [$ABBA], a
+	ld a, e
+	ld [$CAFE], a
+
 inf:
+	nop
 	jr inf
