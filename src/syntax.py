@@ -14,6 +14,7 @@ class Regs(Enum):
 
     SP = "SP"
     PC = "PC"
+    Stack = "Stack"
 
 def create_initial_regmap():
     return {
@@ -35,8 +36,8 @@ def create_initial_regmap():
         "F" : 0x80,
         "H" : 0,
         "L" : 0xd,
-        "SP" : 0xfffe,
         "PC" : 0x100,
+        "Stack": []
     }
 
 class Instruction(ABC):
@@ -230,12 +231,18 @@ class InstPush(InstFamilyTwoRegs):
     def __init__(self, op, highreg, lowreg):
         super().__init__(op, regl=highreg, regr=lowreg)
 
+    def dry_run(self, regmap):
+        regmap["Stack"].append((self.regl, self.regr))
 
 class InstPop(InstFamilyTwoRegs):
     def __init__(self, op, highreg, lowreg):
         super().__init__(op, regl=highreg, regr=lowreg)
 
-    pass
+    def dry_run(self, regmap):
+        l, r = regmap["Stack"][-1]
+        regmap["Stack"] = regmap["Stack"][:-1]
+        regmap[self.regl] = regmap[l]
+        regmap[self.regr] = regmap[r]
 
 
 class InstLoadImmediate16bit(InstFamilyRegWithImmediate):
