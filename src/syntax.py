@@ -305,7 +305,10 @@ class InstStore16bit(InstFamilyStoreReg):
 
 
 class InstLoadAddr(InstFamilyLoadAddr):
-    pass
+    def dry_run(self, regmap):
+        assert self.regl in regmap, self.regl
+        regmap[self.regl] = f"*${self.addr:02x}"
+        return None
 
 
 class InstStoreAddr(InstFamilyStoreAddr):
