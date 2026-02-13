@@ -223,9 +223,13 @@ class InstRelJump(InstFamilyAddr):
             addr = addr - 256
         return super().__init__(op, addr=addr)
 
+    def dry_run(self, regmap):
+        return None
+
 
 class InstAbsJump(InstFamilyAddr):
-    pass
+    def dry_run(self, regmap):
+        return None
 
 
 class InstPush(InstFamilyTwoRegs):
