@@ -339,8 +339,11 @@ class InstReset(InstFamilyRegWithImmediate):
 
 
 class InstControl(InstFamilyOpOnly):
-    pass
+    def dry_run(self, regmap):
+        if self.op.upper() == "NOP":
+            return None
 
+        raise Exception(f"unimplemented dry run for op '{self.op}'")
 
 class InstCall(InstFamilyAddr):
     pass
