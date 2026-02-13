@@ -268,8 +268,9 @@ class InstLoadDirect(InstFamilyLoadReg):
 
 
 class InstLoadRegToReg(InstFamilyTwoRegs):
-    pass
-
+    def dry_run(self, regmap):
+        regmap[self.regl] = regmap[self.regr]
+        return None
 
 class InstLoadRegToHL(InstFamilyStoreReg):
     pass
