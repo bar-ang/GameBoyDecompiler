@@ -57,8 +57,9 @@ class Instruction(ABC):
     def __str__(self):
         return f"{self.op} {self.cond} {self.regl}, {self.regr}, {self.imm:02x}, ({self.addr:04x})"
 
+    @abstractmethod
     def dry_run(self, regmap):
-        return None
+        pass
 
 
 class InstFamilyOpOnly(Instruction):
