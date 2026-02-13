@@ -226,11 +226,15 @@ class InstAbsJump(InstFamilyAddr):
     pass
 
 
-class InstPush(InstFamilySingleReg):
-    pass
+class InstPush(InstFamilyTwoRegs):
+    def __init__(self, op, highreg, lowreg):
+        super().__init__(op, regl=highreg, regr=lowreg)
 
 
-class InstPop(InstFamilySingleReg):
+class InstPop(InstFamilyTwoRegs):
+    def __init__(self, op, highreg, lowreg):
+        super().__init__(op, regl=highreg, regr=lowreg)
+
     pass
 
 

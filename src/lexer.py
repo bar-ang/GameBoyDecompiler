@@ -238,18 +238,18 @@ def consume(code, endianness="little"):
     elif opcode >= 0xC0 and opcode & 0xF == 1:
         # POP commands
         n_bytes = 1
-        reg_order = ["BC", "DE", "HL", "AF"]
+        reg_order = [("B","C"), ("D","E"), ("H","L"), ("A","F")]
         reg = (opcode & 0x30) >> 4
 
-        return InstPop("POP", reg_order[reg]), code[n_bytes:]
+        return InstPop("POP", *reg_order[reg]), code[n_bytes:]
 
     elif opcode >= 0xC0 and opcode & 0xF == 5:
         # PUSH commands
         n_bytes = 1
-        reg_order = ["BC", "DE", "HL", "AF"]
+        reg_order = [("B","C"), ("D","E"), ("H","L"), ("A","F")]
         reg = (opcode & 0x30) >> 4
 
-        return InstPush("Push", reg_order[reg]), code[n_bytes:]
+        return InstPush("Push", *reg_order[reg]), code[n_bytes:]
 
     elif opcode == 0xE0:
         # LDH (addr), A
