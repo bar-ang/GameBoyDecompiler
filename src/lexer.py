@@ -129,7 +129,7 @@ def consume(code, endianness="little"):
         else:
             cmd = InstLoadRegToReg
 
-        return cmd( REG_ORDER[dst], REG_ORDER[src]), code[n_bytes:]
+        return cmd("LD", REG_ORDER[dst], REG_ORDER[src]), code[n_bytes:]
 
     elif opcode >= 0xC0 and opcode & 7 == 7:
         # RST commands
