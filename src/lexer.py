@@ -3,7 +3,7 @@ import sys
 
 instructions = []
 
-DIRECT_OP = "[HL]"
+DIRECT_OP = "HL"
 
 REG_ORDER   = ['B', 'C', 'D', 'E', 'H', 'L', DIRECT_OP, 'A']
 REG16_ORDER = ["BC", "DE", "HL+", "HL-"]
