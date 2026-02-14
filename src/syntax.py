@@ -2,6 +2,17 @@ from abc import ABC, abstractmethod
 from expr import Expr
 from enum import Enum
 
+ALU = {
+    "ADD": "+",
+    "ADC": "+`",
+    "SUB": "-",
+    "SBC": "-`",
+    "AND": "&",
+    "OR" : "|",
+    "XOR": "^",
+    "CPL": "!"
+}
+
 class Regs(Enum):
     A = "A"
     B = "B"
@@ -170,19 +181,30 @@ class InstALUregSP(InstFamilyRegWithImmediate):
 
 
 class InstALU(InstFamilyTwoRegs):
-    pass
-
+    def dry_run(self, regmap):
+        assert self.op in ALU, f"unknown ALU {self.op}"
+        regmap[self.regl] = Expr(ALU[self.op], regmap[self.regl], regmap[self.regr])
+        return None
 
 class InstALU16bit(InstFamilyTwoRegs):
     pass
 
 
 class InstALUDirect(InstFamilyLoadReg):
-    pass
+    def dry_run(self, regmap):
+        assert self.op in ALU, f"unknown ALU {self.op}"
+        assert self.regl in regmap, self.regl
+        val = Expr("*", regmap[self.regr])
+        regmap[self.regl] = Expr(ALU[self.op], regmap[self.regl], val)
+        return None
 
 
 class InstALUImmediate(InstFamilyRegWithImmediate):
-    pass
+    def dry_run(self, regmap):
+        assert self.op in ALU, f"unknown ALU {self.op}"
+        assert self.regl in regmap, self.regl
+        regmap[self.regl] = Expr(ALU[self.op], regmap[self.regl], f"${self.imm:02x}")
+        return None
 
 
 class InstIncDec(InstFamilySingleReg):
@@ -196,7 +218,14 @@ class InstIncDec(InstFamilySingleReg):
 
 
 class InstIncDecDirect(InstFamilyDirect):
-    pass
+    def dry_run(self, regmap):
+        assert self.reg in regmap or \
+            (len(self.reg) == 2 and self.reg[0] in regmap and \
+            self.reg[1] in regmap)
+        val = Expr("*", regmap[self.reg[0]])
+        sign = "+" if self.op.upper() == "INC" else "-"
+        val = Expr(sign, val, "1")
+        return Expr(":=", regmap[self.reg[0]], val)
 
 
 class InstIncDec16bit(InstFamilySingleReg):
@@ -204,11 +233,18 @@ class InstIncDec16bit(InstFamilySingleReg):
 
 
 class InstCBPrefixDirect(InstFamilyDirect):
-    pass
+    def dry_run(self, regmap):
+        assert self.reg in regmap
+        val = Expr("*", regmap[self.reg])
+        val = Expr(self.op, val)
+        return Expr(":=", regmap[self.reg], val)
 
 
 class InstCBPrefix(InstFamilySingleReg):
-    pass
+    def dry_run(self, regmap):
+        assert self.reg in regmap
+        regmap[self.reg] = Expr(self.op, regmap[self.reg])
+        return None
 
 
 class InstRelJumpConditional(InstFamilyCondition):
