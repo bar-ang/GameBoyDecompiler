@@ -293,8 +293,11 @@ class InstPop(InstFamilyTwoRegs):
 
 class InstLoadImmediate16bit(InstFamilyRegWithImmediate):
     def dry_run(self, regmap):
-        assert self.reg in regmap
-        regmap[self.reg] = self.imm
+        assert self.reg in regmap or \
+            (len(self.reg) == 2 and self.reg[0] in regmap and \
+            self.reg[1] in regmap)
+        regmap[self.reg[0]] = self.imm & 0xff
+        regmap[self.reg[1]] = self.imm >> 8
 
         return None
 
