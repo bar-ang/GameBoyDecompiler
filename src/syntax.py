@@ -51,6 +51,11 @@ class Instruction(ABC):
         self.cond = cond
 
     @property
+    def reg(self):
+        assert (self.regl or self.regr) and not (self.regl and self.regr)
+        return self.regl if self.regl else self.regr
+
+    @property
     def op(self):
         return self._op
 
