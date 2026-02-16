@@ -323,7 +323,7 @@ def tokenize_code(code, start_pc=0):
 
 def main(gb_file):
     with open(gb_file, "rb") as f:
-        code = f.read(0x100)
+        code = f.read()
 
     toks = tokenize_code(code)
     print("\n".join([str(t) for _, t in toks.items()]))
