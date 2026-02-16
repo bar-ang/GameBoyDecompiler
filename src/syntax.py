@@ -130,7 +130,7 @@ class InstFamilyStoreReg(Instruction):
         return super().__init__(op, regl, regr)
 
     def __str__(self):
-        return f"{self.op} ({self.regl}), {self.reg}"
+        return f"{self.op} ({self.regl}), {self.regr}"
 
 
 class InstFamilyLoadReg(Instruction):
