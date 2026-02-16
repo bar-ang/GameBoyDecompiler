@@ -3,3 +3,4 @@ Emulicious*
 *.gbc*
 *.sym
 src/__pycache__
+roms
