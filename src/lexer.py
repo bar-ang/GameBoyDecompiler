@@ -308,13 +308,13 @@ def consume(code, pos, endianness="little"):
 
 
 def tokenize_code(code, start_pc=0):
-    tokcode = {}
+    tokcode = []
     pc = start_pc
     codelen = len(code)
     while pc < start_pc + codelen:
         try:
             inst, n_bytes = consume(code, pc)
-            tokcode[pc] = inst
+            tokcode.append((pc, inst))
             pc += n_bytes
         except UnknownInstructionException:
             pc += 1
@@ -326,7 +326,7 @@ def main(gb_file):
         code = f.read()
 
     toks = tokenize_code(code)
-    print("\n".join([str(t) for _, t in toks.items()]))
+    print("\n".join([str(t[1]) for t in toks]))
 
     return 0
 
