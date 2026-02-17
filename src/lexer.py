@@ -1,15 +1,18 @@
 from syntax import *
 import sys
 
-instructions = []
+DIRECT_OP = Deref(Direct.HL)
 
-DIRECT_OP = "HL"
+REG_ORDER:   list[Reg | Deref]        = [Reg.B, Reg.C, Reg.D, Reg.E, Reg.H, Reg.L, DIRECT_OP, Reg.A]
+REG16_ORDER: list[Direct]   = [Direct.BC, Direct.DE, Direct.HLPlus, Direct.HLMinus]
+OP_ORDER:    list[Operator]    = [Operator.ADD, Operator.ADC, Operator.SUB, Operator.SBC, Operator.AND, Operator.XOR, Operator.OR, Operator.CP]
+COND_ORDER:  list[Cond]      = [Cond.NZ, Cond.Z, Cond.NC, Cond.C]
+INC_ORDER:   list[Operator]   = [Operator.INC, Operator.DEC]
 
-REG_ORDER   = ['B', 'C', 'D', 'E', 'H', 'L', DIRECT_OP, 'A']
-REG16_ORDER = ["BC", "DE", "HL+", "HL-"]
-OP_ORDER    = ["ADD", "ADC", "SUB", "SBC", "AND", "XOR", "OR", "CP"]
-COND_ORDER  = ["NZ", "Z", "NC", "C"]
-INC_ORDER   = ["INC", "DEC"]
+def inc_or_dec(op, reg: Reg):
+    if op == Operator.INC:
+        return InstInc(reg)
+    return InstDec(reg)
 
 
 class UnknownInstructionException(Exception):
@@ -20,50 +23,50 @@ class UnknownInstructionException(Exception):
 def attach_two_bytes(bts, endianness=0):
     return bts[endianness] | (bts[1 - endianness] << 8)
 
-def consume(code, pos, endianness="little"):
+def consume(code, pos, endianness="little") -> tuple[Instruction, int]:
     assert endianness in ("big", "little")
     endianness = 0 if endianness == "little" else 1
 
     opcode = code[pos]
 
     if opcode == 0x76:
-        return InstControl("HALT"), 1
+        return InstControl(Operator.HALT), 1
 
     elif opcode == 0x07:
-        return InstALU("RLCA"), 1
+        return InstRotShift(Operator.RLCA), 1
 
     elif opcode == 0x17:
-        return InstALU("RLA"), 1
+        return InstRotShift(Operator.RLA), 1
 
     elif opcode == 0x0F:
-        return InstALU("RRCA"), 1
+        return InstRotShift(Operator.RRCA), 1
 
     elif opcode == 0x1F:
-        return InstALU("RRA"), 1
+        return InstRotShift(Operator.RRA), 1
 
     elif opcode == 0x00:
-        return InstControl("NOP"), 1
+        return InstControl(Operator.NOP), 1
 
     elif opcode == 0x10:
-        return InstControl("STOP"), 2
+        return InstControl(Operator.STOP), 2
 
     elif opcode == 0x27:
-        return InstALU("DAA"), 1
+        return InstALU8bit(Operator.DAA), 1
 
     elif opcode == 0x37:
-        return InstALU("SCF"), 1
+        return InstALU8bit(Operator.SCF), 1
 
     elif opcode == 0x2F:
-        return InstALU("CPL"), 1
+        return InstALU8bit(Operator.CPL), 1
 
     elif opcode == 0x3F:
-        return InstALU("CCF"), 1
+        return InstALU8bit(Operator.CCF), 1
 
     elif opcode == 0xF3:
-        return InstControl("DI"), 1
+        return InstControl(Operator.DI), 1
 
     elif opcode == 0xFB:
-        return InstControl("EI"), 1
+        return InstControl(Operator.EI), 1
 
     elif opcode >= 0x80 and opcode < 0xC0:
         # most 8-bit arithmatic commands have opcodes $80-$bf
@@ -73,11 +76,10 @@ def consume(code, pos, endianness="little"):
         n_bytes = 1
         op = OP_ORDER[(opcode & 0x38) >> 3]
         if opcode & 7 == 6: # has memory access: op a, (HL)
-
-            return InstALUDirect(op), n_bytes
+            return InstALU8bit(op, Deref(Direct.HL)), n_bytes
         reg = REG_ORDER[opcode & 7]
 
-        return InstALU(op, regr=reg), n_bytes
+        return InstALU8bit(op, operand=reg), n_bytes
 
     elif opcode & 0xF0 in {0x20, 0x30} and opcode & 7 == 0:
         # these are the conditional JR commands
@@ -85,7 +87,7 @@ def consume(code, pos, endianness="little"):
         offset = code[pos+1]
         cond = COND_ORDER[(opcode & 0x18) >> 3]
 
-        return InstRelJumpConditional("JR", cond=cond, addr=offset), n_bytes
+        return InstConditionalJr(cond=cond, addr=offset), n_bytes
 
     elif opcode & 0xF0 in {0xC0, 0xD0} and opcode & 7 == 2:
         # these are the conditional JP commands
@@ -93,20 +95,18 @@ def consume(code, pos, endianness="little"):
         pc = attach_two_bytes(code[pos+1:pos+3], endianness)
         cond = COND_ORDER[(opcode & 0x18) >> 3]
 
-        return InstAbsJumpConditional("JP", cond=cond, addr=pc), n_bytes
+        return InstConditionalJp(cond=cond, addr=pc), n_bytes
 
     elif opcode == 0xC3:
         # unconditional JP command
         n_bytes = 3
         pc = attach_two_bytes(code[pos+1:pos+3], endianness)
 
-        return InstAbsJump("JP", addr=pc), n_bytes
+        return InstJp(addr=pc), n_bytes
 
     elif opcode == 0x18:
         # unconditional JR command
-        n_bytes = 2
-
-        return InstRelJump("JR", addr=code[pos+1]), n_bytes
+        return InstJr(addr=code[pos+1]), 2
 
     elif opcode >= 0x40 and opcode <= 0x80:
         assert opcode != 0x76, "HALT command should have been handled already"
@@ -120,40 +120,31 @@ def consume(code, pos, endianness="little"):
 
         src = opcode & 7
         dst = ((opcode & 8) | (opcode & 0x30)) >> 3
-        if opcode & 7 == 6:
-            # read from memory: ld r, (HL)
-            cmd = InstLoadHLToReg
-        elif opcode >= 0x70 and opcode < 0x78:
-            # write to memory: ld (HL), r
-            cmd = InstLoadRegToHL
-        else:
-            cmd = InstLoadRegToReg
-
-        return cmd("LD", REG_ORDER[dst], REG_ORDER[src]), n_bytes
+        return InstLd8bit(REG_ORDER[dst], REG_ORDER[src]), n_bytes
 
     elif opcode >= 0xC0 and opcode & 7 == 7:
         # RST commands
         val = opcode & 0x38
-        return InstReset("RST", imm=val), 1
+        return InstRst(imm=val), 1
 
     elif opcode == 0xEA: # LD (a16),A
         n_bytes = 3
         n = attach_two_bytes(code[pos+1:pos+3], endianness)
 
-        return InstStoreAddr("LD (store)", reg="A", addr=n), n_bytes
+        return InstLd8bit(Deref(n), Reg.A), n_bytes
 
     elif opcode == 0xFA: # LD A,(a16)
         n_bytes = 3
         n = attach_two_bytes(code[pos+1:pos+3], endianness)
 
-        return InstLoadAddr("LD (load)", addr=n, reg="A"), n_bytes
+        return InstLd8bit(Reg.A, Deref(n)), n_bytes
 
     elif opcode >= 0xC0 and opcode & 7 == 6:
         # these are all 2-byte commands operating on reg A
         n_bytes = 2
         op = (opcode & 0x38) >> 3
 
-        return InstALUImmediate(OP_ORDER[op], imm=code[pos+1]), n_bytes
+        return InstALU8bit(OP_ORDER[op], operand=code[pos+1]), n_bytes
 
     elif opcode < 0x40 and opcode & 7 in {4, 5}:
         # these are all 1-byte commands with the standard reg order
@@ -162,34 +153,26 @@ def consume(code, pos, endianness="little"):
 
         reg = ((opcode & 8) | (opcode & 0x30)) >> 3
         op = opcode & 3
-        if reg == 6:
-            cmd = InstIncDecDirect
-        else:
-            cmd = InstIncDec
-
-        return cmd(INC_ORDER[op], REG_ORDER[reg]), n_bytes
+        return inc_or_dec(INC_ORDER[op], REG_ORDER[reg]), n_bytes
 
     elif opcode < 0x40 and opcode & 7 == 6:
         # 2-bytes LD commands
         n_bytes = 2
 
         reg = ((opcode & 8) | (opcode & 0x30)) >> 3
-        if reg == 6: # reg is [HL]
-            cmd = InstLoadImmediateDirect
-        else:
-            cmd = InstLoadImmediate
-
-        return cmd("LD", reg=REG_ORDER[reg], imm=code[pos+1]), n_bytes
+        return InstLd8bit(left=REG_ORDER[reg], right=code[pos+1]), n_bytes
 
     elif opcode < 0x40 and opcode & 7 == 2:
-        # these are LD commands that involve 16-bit regs
+        # these are LD commands or the form:
+        #    LD A, (reg16)
+        # or LD (reg16), A
         n_bytes = 1
 
         reg = (opcode & 0x30) >> 4
         if opcode & 0xf == 2: # store
-            return InstStore16bit("LD (store)", REG_ORDER[reg]), n_bytes
+            return InstLd8bit(Deref(REG16_ORDER[reg]), Reg.A), n_bytes
         else: # load
-            return InstLoad16bit("LD (load)", REG_ORDER[reg]), n_bytes
+            return InstLd8bit(Reg.A, Deref(REG16_ORDER[reg])), n_bytes
 
     elif opcode == 0xCB:
         #TODO for now, we won't identify the command exactly
@@ -198,102 +181,100 @@ def consume(code, pos, endianness="little"):
         op = code[pos+1]
         reg = op & 7
         beta =  op >> 3
-        if reg == 6:
-            return InstCBPrefixDirect(f"β{beta}"), n_bytes
 
-        return InstCBPrefix(f"β{beta}", REG_ORDER[reg]), n_bytes
+        return InstRotShift(Operator.BETA, REG_ORDER[reg]), n_bytes
 
     elif opcode < 0x40 and opcode & 0xF == 1:
         # 16 bits immediate value LD commands
         n_bytes = 3
-        reg_order = ["BC", "DE", "HL", "SP"]
+        reg_order = [Direct.BC, Direct.DE, Direct.HL, Reg.SP]
         reg = opcode >> 4
         n = attach_two_bytes(code[pos+1:pos+3], endianness)
 
-        return InstLoadImmediate16bit(f"LD", reg_order[reg], imm=n), n_bytes
+        return InstLd16bit(reg_order[reg], right=n), n_bytes
 
     elif opcode < 0x40 and opcode & 0x7 == 3:
         # 16 bits INC and DEC
         n_bytes = 1
-        reg_order = ["BC", "DE", "HL", "SP"]
+        reg_order = [Direct.BC, Direct.DE, Direct.HL, Reg.SP]
         reg = opcode >> 4
         op = opcode & 1
 
-        return InstIncDec16bit(INC_ORDER[op], reg_order[reg]), n_bytes
+        return inc_or_dec(INC_ORDER[op], reg_order[reg]), n_bytes
 
     elif opcode < 0x40 and opcode & 0xF == 9:
         # ADD HL, r16
         n_bytes = 1
-        reg_order = ["BC", "DE", "HL", "SP"]
+        reg_order = [Direct.BC, Direct.DE, Direct.HL, Reg.SP]
         reg = opcode >> 4
 
-        return InstALU16bit("ADD", "HL", reg_order[reg]), n_bytes
+        return InstALU16bit(Operator.ADD, reg_order[reg]), n_bytes
 
     elif opcode == 0xE8:
         # ADD SP, r8
         n_bytes = 2
 
-        return InstALUregSP("ADD", "SP", code[pos+1]), n_bytes
+        return InstAddRegSP(code[pos+1]), n_bytes
 
     elif opcode >= 0xC0 and opcode & 0xF == 1:
         # POP commands
         n_bytes = 1
-        reg_order = [("B","C"), ("D","E"), ("H","L"), ("A","F")]
+        reg_order = [Direct.BC, Direct.DE, Direct.HL, Direct.AF]
         reg = (opcode & 0x30) >> 4
 
-        return InstPop("POP", *reg_order[reg]), n_bytes
+        return InstPop(reg_order[reg]), n_bytes
 
     elif opcode >= 0xC0 and opcode & 0xF == 5:
         # PUSH commands
         n_bytes = 1
-        reg_order = [("B","C"), ("D","E"), ("H","L"), ("A","F")]
+        reg_order = [Direct.BC, Direct.DE, Direct.HL, Direct.AF]
         reg = (opcode & 0x30) >> 4
 
-        return InstPush("Push", *reg_order[reg]), n_bytes
+        return InstPush(reg_order[reg]), n_bytes
 
     elif opcode == 0xE0:
         # LDH (addr), A
         n_bytes = 2
 
-        return InstHighStore("LDH (store)", reg="A", addr=code[pos+1]), n_bytes
+        return InstLdhStore(code[pos+1]), n_bytes
 
     elif opcode == 0xF0:
         # LDH A, (addr)
         n_bytes = 2
 
-        return InstHighStore("LDH (load)", reg="A", addr=code[pos+1]), n_bytes
+        return InstLdhLoad(code[pos+1]), n_bytes
 
     elif opcode == 0xE2:
         # LD (C), A
         n_bytes = 2
 
-        return InstHighCStore("LDH (C), A"), n_bytes
+        return InstLdhCStore(), n_bytes
 
     elif opcode == 0xF2:
         # LD A, (C)
         n_bytes = 2
 
-        return InstHighCStore("LDH A, (C)"), n_bytes
+        return InstLdhCLoad(), n_bytes
 
     elif opcode == 0xC9:
-        return InstRet("RET"), 1
+        return InstRet(), 1
 
     elif opcode == 0xD9:
-        return InstRet("RETI"), 1
+        return InstReti(), 1
 
     elif opcode & 0xF0 in {0xC0, 0xD0} and opcode & 7 == 0:
         # Conditional RET
         n_bytes = 1
         cond = COND_ORDER[(opcode & 0x18) >> 3]
 
-        return InstConitionalRet("RET",cond=cond), n_bytes
+        return InstConditionalRet(cond=cond), n_bytes
 
     elif opcode == 0xCD:
         # unconditional CALL
         n_bytes = 3
         n = attach_two_bytes(code[pos+1:pos+3], endianness)
 
-        return InstCall("CALL", addr=n), n_bytes
+        return InstCall(addr=n), n_bytes
 
     elif opcode & 0xF0 in {0xC0, 0xD0} and opcode & 7 == 4:
         # Conditional CALL
@@ -301,7 +282,7 @@ def consume(code, pos, endianness="little"):
         pc = attach_two_bytes(code[pos+1:pos+3], endianness)
         cond = COND_ORDER[(opcode & 0x18) >> 3]
 
-        return InstConitionalCall("CALL", addr=pc, cond=cond), n_bytes
+        return InstConditionalCall(addr=pc, cond=cond), n_bytes
 
 
     raise UnknownInstructionException(f"Unknown instruction: {opcode:02X}")
