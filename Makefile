@@ -12,9 +12,23 @@ ASM_FILES := $(wildcard $(SRC_DIR)/*.asm)
 # Convert examples/foo.asm -> roms/foo.gb
 ROM_FILES := $(patsubst $(SRC_DIR)/%.asm,$(OUT_DIR)/%.gb,$(ASM_FILES))
 
-.PHONY: all clean
+LEXER_TEST ?= roms/lexer_test.gb
 
-examples: $(OUT_DIR) $(ROM_FILES)
+.PHONY: all clean roms
+
+all:
+	pylint --errors-only src/
+	python src/main.py
+
+lexer:
+	mypy src/lexer.py src/syntax.py
+	python src/lexer.py $(LEXER_TEST)
+
+explorer:
+	mypy src/syntax.py src/lexer.py src/explorer.py
+	python src/explorer.py
+
+romfiles: $(OUT_DIR) $(ROM_FILES)
 
 # Ensure roms directory exists
 $(OUT_DIR):
