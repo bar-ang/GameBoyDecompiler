@@ -33,10 +33,19 @@ SECTION "Mr X", ROMX[$4020]
 		pop af
 	ENDR
 
+bimba:
+	DEF i=0
+	REPT 20
+	add a, i
+	DEF i+=1
+	ENDR
+	ret
+
 Gerbil:
 	ld a, [$6543]
 	inc a
 	ld [$6543], a
+	call bimba
 	ret
 
 
