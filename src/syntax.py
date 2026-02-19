@@ -156,23 +156,46 @@ class InstFlow(Instruction):
     def __init__(self, op: Operator, cond: Cond | None=None, addr: int | None=None):
         super().__init__(op, cond, addr)
 
+    @property
+    def cond(self):
+        return self.left
 
-class InstConditionalJr(InstFlow):
+    @property
+    def addr(self):
+        return self.right
+
+
+class InstJump(InstFlow):
+    def __init__(self, op: Operator, addr: int, cond: Cond | None=None):
+        assert op in {Operator.JR, Operator.JP}
+        super().__init__(op, cond=cond, addr=addr)
+
+    def is_relative(self) -> bool:
+        return self.op == Operator.JR
+
+
+class InstConditionalJr(InstJump):
     def __init__(self, cond: Cond, addr: int):
-        super().__init__(Operator.JR, cond, addr)
+        assert addr < 256
+        if addr >= 128:
+            addr -= 256
+        super().__init__(Operator.JR, cond=cond, addr=addr)
 
 
-class InstConditionalJp(InstFlow):
+class InstConditionalJp(InstJump):
     def __init__(self, cond: Cond, addr: int):
-        super().__init__(Operator.JP, cond, addr)
+        super().__init__(Operator.JP, cond=cond, addr=addr)
 
 
-class InstJr(InstFlow):
+class InstJr(InstJump):
     def __init__(self, addr: int):
+        assert addr < 256
+        if addr >= 128:
+            addr -= 256
         super().__init__(Operator.JR, addr=addr)
 
 
-class InstJp(InstFlow):
+class InstJp(InstJump):
     def __init__(self, addr: int):
         super().__init__(Operator.JP, addr=addr)
 
