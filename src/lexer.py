@@ -1,3 +1,4 @@
+from functools import total_ordering
 from syntax import *
 import sys
 
@@ -18,6 +19,25 @@ def inc_or_dec(op, reg: Reg):
 class UnknownInstructionException(Exception):
     pass
 
+@total_ordering
+class Token:
+    def __init__(self, inst : Instruction, pc: int):
+        self._inst = inst
+        self._pc = pc
+
+    @property
+    def inst(self) -> Instruction:
+        return self._inst
+
+    @property
+    def pc(self) -> int:
+        return self._pc
+
+    def __eq__(self, other):
+        return self.pc == other.pc
+
+    def __lt__(self, other):
+        return self.pc < other.pc
 
 
 def attach_two_bytes(bts, endianness=0):
@@ -295,7 +315,7 @@ def tokenize_code(code, start_pc=0):
     while pc < start_pc + codelen:
         try:
             inst, n_bytes = consume(code, pc)
-            tokcode.append((pc, inst))
+            tokcode.append(Token(inst=inst, pc=pc))
             pc += n_bytes
         except UnknownInstructionException:
             pc += 1
@@ -307,7 +327,7 @@ def main(gb_file):
         code = f.read()
 
     toks = tokenize_code(code)
-    print("\n".join([f"{t[0]:04x}:\t{t[1]}" for t in toks]))
+    print("\n".join([f"{t.pc:04x}:\t{t.inst}" for t in toks]))
 
     return 0
 
