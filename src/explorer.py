@@ -1,116 +1,63 @@
 import syntax
 import lexer
 import sys
+import bisect
 
-def make_slice(tokens, start, length):
-    slice = []
-    for i in range(start, start+length):
-        tok = tokens.get(i, None)
-        if tok:
-            slice.append((tok, i))
-    return slice
+def find_token_by_pc(tokens, pc) -> int | None:
+    dummy = lexer.Token(inst=syntax.Instruction(), pc=pc)  # inst is unused for comparison
+    i = bisect.bisect_left(tokens, dummy)
+    if i < len(tokens) and tokens[i].pc == pc:
+        return i
+    return None
 
 def search_inf_loop(tokens, main_start):
-    pc = main_start
-    while True:
-        assert pc - main_start < 10 ** 7
-        token = tokens.get(pc, None)
-        if token and \
-           ((type(token) == syntax.InstAbsJump and token.addr < pc) or \
-            (type(token) == syntax.InstRelJump and token.addr < 0)):
-            return pc+2
-        pc += 1
+    for i, tok in enumerate(tokens[main_start:]):
+        if isinstance(tok.inst, syntax.InstJump) and not tok.inst.cond and \
+            ((tok.inst.is_relative() and tok.inst.addr < 0) or \
+            (not tok.inst.is_relative() and tok.inst.addr < tok.pc)):
+                return i + main_start
+    return None
 
 def extract_func_calling(tokens, start, length):
     res = []
 
     for i in range(start, start+length):
-        tok = tokens.get(i, None)
-        if tok and type(tok) in {syntax.InstCall, syntax.InstConitionalCall}:
-            res.append(tok.addr)
+        inst = tokens[i].inst
+        if isinstance(inst, syntax.InstCall) or \
+           isinstance(inst, syntax.InstConditionalCall):
+            res.append(inst.addr)
 
     return list(set(res))
 
-def identify_func_len(tokens, pc_start):
-    pc = pc_start
-    while True:
-        assert pc - pc_start < 10 ** 7
-        tok = tokens.get(pc, None)
-        if tok and type(tok) == syntax.InstRet:
-            return pc - pc_start
-        pc += 1
-
-def deep_explore(slice):
-    if len(slice) < 2:
-        return slice
-    res = []
-    i = 0
-    while i < len(slice):
-        inst, pc = slice[i]
-        if type(inst) is not dict and inst.op == "JR" and inst.addr >= 0:
-            j = 1
-            while slice[i+j][1] - pc < inst.addr + 2:
-                j += 1
-            print(slice[i+j][1], i, j)
-            assert slice[i+j][1] - pc == inst.addr + 2
-            res.append(({
-                "type": "IF",
-                "inst": slice[i][0],
-                "pc" : pc,
-                "content" : deep_explore(slice[i+1:i+j])
-            }, pc))
-            i += j
-        else:
-            res.append(slice[i])
-            i += 1
-
-    res2 = []
-    i = len(res) - 1
-    while i >= 0:
-        inst, pc = res[i]
-        if type(inst) is not dict and inst.op == "JR" and inst.addr < 0:
-            off = -inst.addr
-
-            j = 1
-            while pc - res[i-j][1] < off - 2:
-                j += 1
-
-            res2.append(({
-                "type": "LOOP",
-                "inst": res[i][0],
-                "pc": res[i-j][1],
-                "content": deep_explore(res[i-j:i])
-            }, res[i-j][1]))
-            i -= (j + 1)
-        else:
-            res2.append(res[i])
-            i -= 1
-
-
-    return res2[::-1]
+def identify_func_len(tokens, start):
+    for i, tok in enumerate(tokens[start:]):
+        inst = tok.inst
+        if isinstance(inst, syntax.InstRet) or \
+           isinstance(inst, syntax.InstReti) or \
+           isinstance(inst, syntax.InstConditionalRet):
+            return i
+    raise Exception("unfortunate CALL without a following RET")
 
 def map_all_funcs(tokens, calls):
     funcs = {}
-    for call in calls:
+    for call_addr in calls:
+        call = find_token_by_pc(tokens, call_addr)
         flen = identify_func_len(tokens, call)
         more_calls = extract_func_calling(tokens, call, flen)
         funcs.update(map_all_funcs(tokens, more_calls))
-        funcs[f"fun_{call:04X}"] = deep_explore(make_slice(tokens, call, flen))
+        funcs[f"fun_{call:04X}"] = tokens[call:call+flen]
     return funcs
 
 def handle_entry_point(tokens, pc_start):
-    start = tokens[pc_start]
-    if start.op not in {"JR", "JP"}:
-        pc_start += 1
-        start = tokens[pc_start]
+    i = find_token_by_pc(tokens, pc_start)
+    start = tokens[i].inst
+    if not isinstance(start, syntax.InstJump):
+        start = tokens[i+1].inst
 
-    assert start.op in {"JR", "JP"}, f"unexpected of '{str(start)}' on entry point"
-
-    if start.op == "JP":
-        return start.addr
-    else:
-        return start.addr + pc_start
-
+    assert isinstance(start, syntax.InstJump), f"unexpected of '{str(start)}' on entry point"
+    j = find_token_by_pc(tokens, start.addr)
+    assert j
+    return j
 
 def explore(tokens, pc_start=0x100, main_func="main"):
     funcmap = {}
@@ -121,7 +68,7 @@ def explore(tokens, pc_start=0x100, main_func="main"):
 
     calls = extract_func_calling(tokens, main_start, jr_pos - main_start)
 
-    funcmap[main_func] = deep_explore(make_slice(tokens, main_start, jr_pos - main_start))
+    funcmap[main_func] = tokens[main_start: jr_pos]
     funcmap.update(map_all_funcs(tokens, calls))
 
     return funcmap
@@ -134,7 +81,7 @@ def main(gb_file):
     tokens = lexer.tokenize_code(readed)
     print("exploring function:")
     funcmap = explore(tokens)
-    print("\n".join([f"{fun}: {"\n".join([f"\t{c[0]}" for c in cont])}" for fun, cont in funcmap.items()]))
+    print("\n".join([f"{fun}:\n{"\n".join([f"\t{c.inst}" for c in cont])}" for fun, cont in funcmap.items()]))
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
