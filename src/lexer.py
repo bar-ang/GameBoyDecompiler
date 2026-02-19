@@ -307,7 +307,7 @@ def main(gb_file):
         code = f.read()
 
     toks = tokenize_code(code)
-    print("\n".join([str(t[1]) for t in toks]))
+    print("\n".join([f"{t[0]:04x}:\t{t[1]}" for t in toks]))
 
     return 0
 
