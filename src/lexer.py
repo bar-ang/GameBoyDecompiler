@@ -40,6 +40,10 @@ class Token:
         return self.pc < other.pc
 
 
+    def __str__(self):
+        res = f"{self.pc:04x}:\t{self.inst}"
+        return res
+
 def attach_two_bytes(bts, endianness=0):
     return bts[endianness] | (bts[1 - endianness] << 8)
 
