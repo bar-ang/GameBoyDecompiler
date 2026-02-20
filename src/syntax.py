@@ -137,9 +137,15 @@ class Instruction(ABC):
     def __str__(self):
         res = f"{self.op}"
         if self.left:
-            res += f" {self.left}"
+            left_str = str(self.left)
+            if left_str.isdigit():
+                left_str = f"${int(left_str):04X}"
+            res += f" {left_str}"
         if self.right:
-            res += f", {self.right}"
+            right_str = str(self.right)
+            if right_str.isdigit():
+                right_str = f"${int(right_str):04X}"
+            res += f", {right_str}"
 
         return res
 
