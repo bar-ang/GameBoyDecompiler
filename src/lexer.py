@@ -31,6 +31,13 @@ class Token:
         self.next_token = next_token
         self.next_cond_token = next_cond_token
 
+    def absolute_addr(self):
+        assert isinstance(self.inst, InstJump)
+        if isinstance(self.inst, InstJp):
+            return self.inst.addr
+        else:
+            return self.inst.addr + self.pc + 2
+
     @property
     def inst(self) -> Instruction:
         return self._inst

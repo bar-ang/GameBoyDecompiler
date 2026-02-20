@@ -72,7 +72,8 @@ def connect_tokens(tokens):
             tok.next_token = tokens[i+1]
 
         if isinstance(inst, syntax.InstJump) and inst.cond:
-            tok.next_cond_token = tokens[find_token_by_pc(tokens, inst.addr)]
+            t = find_token_by_pc(tokens, tok.absolute_addr())
+            tok.next_cond_token = tokens[t]
 
 
 def explore(tokens, pc_start=0x100, main_func="main"):
