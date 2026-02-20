@@ -52,6 +52,8 @@ class Token:
     def __lt__(self, other):
         return self.pc < other.pc
 
+    def __repr__(self):
+        return str(self)
 
     def __str__(self):
         res = f"{self.pc:04x}:\t{self.inst}"
