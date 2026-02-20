@@ -21,9 +21,15 @@ class UnknownInstructionException(Exception):
 
 @total_ordering
 class Token:
-    def __init__(self, inst : Instruction, pc: int):
+    def __init__(self, inst : Instruction, pc: int,
+                 next_token=None,
+                 next_cond_token=None):
+        assert not next_token or isinstance(next_token, Token)
+        assert not next_cond_token or isinstance(next_cond_token, Token)
         self._inst = inst
         self._pc = pc
+        self.next_token = next_token
+        self.next_cond_token = next_cond_token
 
     @property
     def inst(self) -> Instruction:
