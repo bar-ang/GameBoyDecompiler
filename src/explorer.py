@@ -65,6 +65,8 @@ def explore(tokens, pc_start=0x100, main_func="main"):
     main_start = handle_entry_point(tokens, pc_start)
 
     jr_pos = search_inf_loop(tokens, main_start)
+    if jr_pos is None:
+        raise Exception("main function could be detected")
 
     calls = extract_func_calling(tokens, main_start, jr_pos - main_start)
 
