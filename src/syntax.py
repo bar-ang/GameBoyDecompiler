@@ -90,14 +90,17 @@ class Deref:
     def operand(self):
         return self._operand
 
+    def store_expr(self, val):
+        return Expr("*", val)
+
     def __str__(self):
         return f"[{self.operand}]"
 
 OpdType = Reg | Deref | Direct | Cond | int
 
-TypeRegmap = dict[Reg, int]
+TypeRegmap = dict[Reg, int | Reg | Expr]
 
-def create_initial_regmap():
+def create_initial_regmap() -> TypeRegmap:
     return {
         Reg.A : 0x11,
         Reg.B : 0,
@@ -110,6 +113,19 @@ def create_initial_regmap():
         Reg.SP : 0xfffe,
         Reg.PC : 0x100,
     }
+
+def r_value(val: OpdType | None) -> Expr | int | Reg:
+    assert val is not None
+    assert not isinstance(val, Cond)
+
+    if isinstance(val, int):
+        return str(val)
+    elif isinstance(val, Reg):
+        return val
+    elif isinstance(val, Deref):
+        return r_value(val.operand)
+
+    raise Exception(f"could not handle r-value '{val}' of type '{type(val)}'")
 
 class Instruction(ABC):
 
@@ -232,6 +248,29 @@ class InstConditionalCall(InstFlow):
 class InstLd8bit(Instruction):
     def __init__(self, left: OpdType, right: OpdType):
         super().__init__(Operator.LD, left, right)
+
+    def dry_run(self, regmap : TypeRegmap) -> Expr | None:
+        assert not isinstance(self.left, Cond)
+        assert not isinstance(self.left, int)
+        if isinstance(self.left, Reg):
+            regmap[self.left] = r_value(self.right)
+            return None
+        elif isinstance(self.left, Direct):
+            h, l, i = self.left.value
+            rv = r_value(self.right)
+            regmap[h] = Expr("HIGH", rv)
+            regmap[l] = Expr("LOW", rv)
+            if i > 0:
+                regmap[l] = Expr("+", l, "1")
+            elif i < 0:
+                regmap[l] = Expr("-", l, "1")
+
+            return None
+        elif isinstance(self.left, Deref):
+            return self.left.store_expr(r_value(self.right))
+
+        raise Exception(f"cannot handle LD left value that is '{self.left}' of type '{type(self.left)}'")
+        return None
 
 
 class InstLdhLoad(InstLd8bit):
