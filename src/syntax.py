@@ -95,6 +95,7 @@ class Deref:
 
 OpdType = Reg | Deref | Direct | Cond | int
 
+TypeRegmap = dict[Reg, int]
 
 def create_initial_regmap():
     return {
@@ -147,8 +148,8 @@ class Instruction(ABC):
 
         return res
 
-    def dry_run(self, regmap):
-        pass
+    def dry_run(self, regmap : TypeRegmap) -> Expr | None:
+        return None
 
 
 class InstControl(Instruction):
