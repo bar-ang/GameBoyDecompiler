@@ -1,15 +1,15 @@
 import textwrap as tw
 import syntax
 from expr import Expr
-
+from lexer import Token
 
 INDENT = " " * 4
 
 class ASTNode:
-    def __init__(self, scope):
+    def __init__(self, scope: list['ASTNode']):
         self.scope = scope
 
-    def content(self):
+    def content(self) -> str:
         return "\n".join([str(c) for c in self.scope])
 
     def __str__(self):
@@ -20,7 +20,7 @@ class ASTNodeInitial(ASTNode):
         return self.content()
 
 class ASTNodeFunc(ASTNode):
-    def __init__(self, name, scope):
+    def __init__(self, name: str, scope: list[ASTNode]):
         super().__init__(scope)
         self.name = name
 
@@ -28,7 +28,7 @@ class ASTNodeFunc(ASTNode):
         return f"{self.name} {{\n{tw.indent(self.content(), INDENT)}\n}}"
 
 class ASTNodeLoopStmt(ASTNode):
-    def __init__(self, cond: ASTNode, scope):
+    def __init__(self, cond: ASTNode, scope: list[ASTNode]):
         super().__init__(scope)
         self.cond = cond
 
@@ -36,7 +36,7 @@ class ASTNodeLoopStmt(ASTNode):
         return f"while({self.cond}) {{\n{tw.indent(self.content(), INDENT)}\n}}"
 
 class ASTNodeIfStmt(ASTNode):
-    def __init__(self, cond: ASTNode, scope):
+    def __init__(self, cond: ASTNode, scope: list[ASTNode]):
         super().__init__(scope)
         self.cond = cond
 
@@ -44,7 +44,7 @@ class ASTNodeIfStmt(ASTNode):
         return f"if({self.cond}) {{\n{tw.indent(self.content(), INDENT)}\n}}"
 
 class ASTNodeExpression(ASTNode):
-    def __init__(self, expr: str):
+    def __init__(self, expr: Expr):
         self.expr = expr
         super().__init__(scope=[])
 
@@ -60,49 +60,22 @@ class ASTNodeText(ASTNode):
         return self.text
 
 class ASTNodeJumpHandler(ASTNode):
-    def __init__(self, inst, **regs):
-        assert type(inst) in {syntax.InstRelJumpConditional, syntax.InstRelJump}
-        self.inst = inst
-        self.regs = regs
+    def __init__(self, inst: syntax.InstJump):
+        super().__init__(scope=[])
 
-    def __str__(self):
-        if type(self.inst) == syntax.InstRelJump:
-            return "true"
-        else:
-            if self.inst.cond == "C":
-                return "A >= 0"
-            elif self.inst.cond == "NC":
-                return "A < 0"
-            elif self.inst.cond == "Z":
-                return "A != 0"
-            elif self.inst.cond == "NZ":
-                return "A == 0"
-            else:
-                raise Exeption("unknown condition")
-            return str(self.inst)
 
-def make_scope_for_func(content, regmap):
+def make_scope_for_func(content: list[Token], regmap: syntax.TypeRegmap) -> list:
     scope = []
-    for inst, _ in content:
-        if type(inst) is not dict:
-            expr = inst.dry_run(regmap)
-            if expr:
-                node = ASTNodeExpression(expr)
-                scope.append(node)
-        else:
-            assert "type" in inst
-            assert inst["type"].upper() in ("IF", "LOOP")
-            inner_scope = make_scope_for_func(inst["content"], regmap)
-            cond = ASTNodeJumpHandler(inst["inst"])
-            if inst["type"].upper() == "IF":
-                scope.append(ASTNodeIfStmt(cond, inner_scope))
-            else:
-                scope.append(ASTNodeLoopStmt(cond, inner_scope))
+    for tok in content:
+        expr = tok.inst.dry_run(regmap)
+        if expr:
+            node = ASTNodeExpression(expr)
+            scope.append(node)
     return scope
 
-def build_ast(explored_tokens):
-    scope = []
-    regmap = syntax.create_initial_regmap()
+def build_ast(explored_tokens) -> ASTNode:
+    scope: list = []
+    regmap: syntax.TypeRegmap = syntax.create_initial_regmap()
     for func, content in explored_tokens.items():
         func_scope = make_scope_for_func(content, regmap)
         scope.append(ASTNodeFunc(name=func, scope=func_scope))
