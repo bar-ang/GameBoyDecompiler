@@ -53,7 +53,6 @@ class Reg(Enum):
 
     SP = "SP"
     PC = "PC"
-    Stack = "Stack"
 
     def __str__(self):
         return f"{self.value}"
@@ -109,7 +108,6 @@ def create_initial_regmap():
         Reg.L : 0xd,
         Reg.SP : 0xfffe,
         Reg.PC : 0x100,
-        Reg.Stack: []
     }
 
 class Instruction(ABC):
