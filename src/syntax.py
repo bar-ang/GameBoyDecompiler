@@ -41,6 +41,17 @@ class Operator(Enum):
     def __str__(self):
         return f"{self.value}"
 
+SIGNS = {
+    Operator.ADD: "+",
+    Operator.SUB: "-",
+    Operator.ADC: "+`",
+    Operator.SBC: "-`",
+    Operator.OR:  "|",
+    Operator.XOR: "^",
+    Operator.AND: "&",
+    Operator.BETA: "β",
+}
+
 class Reg(Enum):
     A = "A"
     B = "B"
@@ -168,14 +179,17 @@ class Instruction(ABC):
 
         return res
 
+    @abstractmethod
     def dry_run(self, regmap : TypeRegmap) -> Expr | None:
-        return None
+        pass
 
 
 class InstControl(Instruction):
     def __init__(self, op: Operator):
         super().__init__(op)
 
+    def dry_run(self, regmap : TypeRegmap) -> Expr | None:
+        return None
 
 class InstFlow(Instruction):
     def __init__(self, op: Operator, cond: Cond | None=None, addr: int | None=None):
@@ -188,6 +202,9 @@ class InstFlow(Instruction):
     @property
     def addr(self):
         return self.right
+
+    def dry_run(self, regmap : TypeRegmap) -> Expr | None:
+        return None
 
 
 class InstJump(InstFlow):
@@ -234,9 +251,15 @@ class InstRet(InstFlow):
     def __init__(self):
         super().__init__(Operator.RET)
 
+    def dry_run(self, regmap : TypeRegmap) -> Expr | None:
+       return None
+
 class InstReti(InstFlow):
     def __init__(self):
         super().__init__(Operator.RET)
+
+    def dry_run(self, regmap : TypeRegmap) -> Expr | None:
+       return None
 
 
 class InstConditionalRet(InstFlow):
@@ -261,16 +284,7 @@ class InstLd8bit(Instruction):
             regmap[self.left] = rv
             return None
         elif isinstance(self.left, Direct):
-            h, l, i = self.left.value
-            regmap[l] = Expr("LOW", rv)
-            regmap[h] = Expr("HIGH", rv)
-
-            if i > 0:
-                regmap[l] = Expr.make("+", l, 1)
-            elif i < 0:
-                regmap[l] = Expr.make("-1", l, 1)
-
-            return None
+            raise Exception("unimplemented")
         elif isinstance(self.left, Deref):
             return self.left.store_expr(rv)
 
@@ -306,40 +320,78 @@ class InstPop(Instruction):
     def __init__(self, direct: Direct):
         super().__init__(Operator.POP, left=direct)
 
+    def dry_run(self, regmap : TypeRegmap) -> Expr | None:
+       return None
+
 
 class InstPush(Instruction):
     def __init__(self, direct: Direct):
         super().__init__(Operator.PUSH, left=direct)
 
+    def dry_run(self, regmap : TypeRegmap) -> Expr | None:
+       return None
 
 class InstALU8bit(Instruction):
     def __init__(self, op: Operator, operand: OpdType=Reg.A):
         super().__init__(op, left=Reg.A, right=operand)
+
+    def dry_run(self, regmap : TypeRegmap) -> Expr | None:
+        assert self.left
+        assert not isinstance(self.left, Cond)
+        assert not isinstance(self.left, Direct)
+        assert not isinstance(self.left, Deref)
+        assert not isinstance(self.left, int)
+        rv = r_value(self.right, regmap)
+        regmap[self.left] = Expr(SIGNS[self.op], regmap[self.left], rv)
+        return None
 
 
 class InstALU16bit(Instruction):
     def __init__(self, op: Operator, operand: Direct):
         super().__init__(op, left=Direct.HL, right=operand)
 
+    def dry_run(self, regmap : TypeRegmap) -> Expr | None:
+        return None
+
 
 class InstRotShift(Instruction):
     def __init__(self, op: Operator, operand: OpdType=Reg.A):
         super().__init__(op, left=operand)
+
+    def dry_run(self, regmap : TypeRegmap) -> Expr | None:
+        assert isinstance(self.left, Reg)
+        assert isinstance(self.right, Reg)
+
+        regmap[self.left] = Expr(SIGNS[self.op], regmap[self.left], regmap[self.right])
+        return None
 
 
 class InstRst(Instruction):
     def __init__(self, imm:int):
         super().__init__(Operator.RST, left=imm)
 
+    def dry_run(self, regmap : TypeRegmap) -> Expr | None:
+        return None
+
 
 class InstInc(Instruction):
     def __init__(self, reg: OpdType):
         super().__init__(Operator.INC, reg)
 
+    def dry_run(self, regmap : TypeRegmap) -> Expr | None:
+        assert isinstance(self.left, Reg)
+        regmap[self.left] = Expr("+", regmap[self.left], Expr(1))
+        return None
+
 
 class InstDec(Instruction):
     def __init__(self, reg: OpdType):
         super().__init__(Operator.DEC, reg)
+
+    def dry_run(self, regmap : TypeRegmap) -> Expr | None:
+        assert isinstance(self.left, Reg)
+        regmap[self.left] = Expr("-", regmap[self.left], Expr(1))
+        return None
 
 
 class InstAddRegSP(InstALU8bit):
