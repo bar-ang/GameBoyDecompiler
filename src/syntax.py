@@ -98,32 +98,32 @@ class Deref:
 
 OpdType = Reg | Deref | Direct | Cond | int
 
-TypeRegmap = dict[Reg, int | Reg | Expr]
+TypeRegmap = dict[Reg, Expr]
 
 def create_initial_regmap() -> TypeRegmap:
     return {
-        Reg.A : 0x11,
-        Reg.B : 0,
-        Reg.C : 0,
-        Reg.D : 0xff,
-        Reg.E : 0x56,
-        Reg.F : 0x80,
-        Reg.H : 0,
-        Reg.L : 0xd,
-        Reg.SP : 0xfffe,
-        Reg.PC : 0x100,
+        Reg.A : Expr(0x11),
+        Reg.B : Expr(0),
+        Reg.C : Expr(0),
+        Reg.D : Expr(0xff),
+        Reg.E : Expr(0x56),
+        Reg.F : Expr(0x80),
+        Reg.H : Expr(0),
+        Reg.L : Expr(0xd),
+        Reg.SP : Expr(0xfffe),
+        Reg.PC : Expr(0x100),
     }
 
-def r_value(val: OpdType | None) -> Expr | int | Reg:
+def r_value(val: OpdType | None, regmap : TypeRegmap) -> Expr:
     assert val is not None
     assert not isinstance(val, Cond)
 
     if isinstance(val, int):
-        return str(val)
+        return Expr(val)
     elif isinstance(val, Reg):
-        return val
+        return regmap[val]
     elif isinstance(val, Deref):
-        return r_value(val.operand)
+        return r_value(val.operand, regmap)
 
     raise Exception(f"could not handle r-value '{val}' of type '{type(val)}'")
 
@@ -252,22 +252,23 @@ class InstLd8bit(Instruction):
     def dry_run(self, regmap : TypeRegmap) -> Expr | None:
         assert not isinstance(self.left, Cond)
         assert not isinstance(self.left, int)
+        rv = r_value(self.right, regmap)
         if isinstance(self.left, Reg):
-            regmap[self.left] = r_value(self.right)
+            regmap[self.left] = rv
             return None
         elif isinstance(self.left, Direct):
             h, l, i = self.left.value
-            rv = r_value(self.right)
-            regmap[h] = Expr("HIGH", rv)
             regmap[l] = Expr("LOW", rv)
+            regmap[h] = Expr("HIGH", rv)
+
             if i > 0:
-                regmap[l] = Expr("+", l, "1")
+                regmap[l] = Expr.make("+", l, 1)
             elif i < 0:
-                regmap[l] = Expr("-", l, "1")
+                regmap[l] = Expr.make("-1", l, 1)
 
             return None
         elif isinstance(self.left, Deref):
-            return self.left.store_expr(r_value(self.right))
+            return self.left.store_expr(rv)
 
         raise Exception(f"cannot handle LD left value that is '{self.left}' of type '{type(self.left)}'")
         return None
