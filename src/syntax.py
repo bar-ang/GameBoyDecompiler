@@ -90,8 +90,8 @@ class Deref:
     def operand(self):
         return self._operand
 
-    def store_expr(self, val):
-        return Expr("*", val)
+    def store_expr(self, val: Expr):
+        return Expr(":=", Expr("*", self.operand), val)
 
     def __str__(self):
         return f"[{self.operand}]"
