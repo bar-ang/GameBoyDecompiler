@@ -16,6 +16,17 @@ class Expr:
         self._postpositive = postpositive
         self.size_bytes = size_bytes
 
+    @staticmethod
+    def make(op: TypeBaseExpr,
+             a: TypeBaseExpr | None=None,
+             b: TypeBaseExpr | None=None,
+             **kwargs):
+
+        p1 = Expr(a) if a is not None else None
+        p2 = Expr(b) if b is not None else None
+
+        return Expr(op, p1, p2, **kwargs)
+
     def op_as_str(self):
         if type(self.op) == str:
             return self.op
