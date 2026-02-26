@@ -129,6 +129,10 @@ def r_value(val: OpdType | None, regmap : TypeRegmap) -> Expr:
 
 class Instruction(ABC):
 
+    @staticmethod
+    def Empty():
+        return InstControl(Operator.NOP)
+
     def __init__(self,
                  op: Operator | None=None,
                  left: OpdType | None=None,

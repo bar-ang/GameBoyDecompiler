@@ -4,7 +4,7 @@ import sys
 import bisect
 
 def find_token_by_pc(tokens, pc) -> int | None:
-    dummy = lexer.Token(inst=syntax.Instruction(), pc=pc)  # inst is unused for comparison
+    dummy = lexer.Token(inst=syntax.Instruction.Empty(), pc=pc)  # inst is unused for comparison
     i = bisect.bisect_left(tokens, dummy)
     if i < len(tokens) and tokens[i].pc == pc:
         return i
