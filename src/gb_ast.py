@@ -70,8 +70,6 @@ def make_scope_for_func(content: list[Token], regmap: syntax.TypeRegmap) -> list
         expr = tok.inst.dry_run(regmap)
         if expr:
             scope.append(ASTNodeExpression(expr))
-        else:
-            scope.append(ASTNodeText(str(tok.inst)))
     return scope
 
 def build_ast(explored_tokens) -> ASTNode:
