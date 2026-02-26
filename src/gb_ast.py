@@ -65,15 +65,13 @@ class ASTNodeJumpHandler(ASTNode):
 
 
 def make_scope_for_func(content: list[Token], regmap: syntax.TypeRegmap) -> list:
-    scope = []
+    scope: list = []
     for tok in content:
         expr = tok.inst.dry_run(regmap)
         if expr:
-            node = ASTNodeExpression(expr)
-            scope.append(node)
+            scope.append(ASTNodeExpression(expr))
         else:
-            node = ASTNodeText(str(tok.inst))
-            scope.append(node)
+            scope.append(ASTNodeText(str(tok.inst)))
     return scope
 
 def build_ast(explored_tokens) -> ASTNode:
