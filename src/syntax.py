@@ -395,7 +395,7 @@ class InstALU8bit(Instruction):
         assert not isinstance(self.left, Deref)
         assert not isinstance(self.left, int)
         rv = r_value(self.right, regmap)
-        regmap[self.left] = Expr(SIGNS.get(self.op, self.op), regmap[self.left], rv)
+        regmap[self.left] = Expr(SIGNS.get(self.op, self.op.value), regmap[self.left], rv)
         return None
 
 
