@@ -20,6 +20,12 @@ start:
 	ld a, b
 	ld [$baba], a
 
+	ld bc, $9876
+	ld a, b
+	ld [$b000], a
+	ld a, c
+	ld [$b001], a
+
 
 inf:
 	nop
