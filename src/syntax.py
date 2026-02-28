@@ -344,20 +344,45 @@ class InstLd16bit(InstLd8bit):
         super().__init__(left, right)
 
 
-class InstPop(Instruction):
+class InstStack(Instruction):
+    def __init__(self, op: Operator, direct: Direct):
+        super().__init__(op, left=direct)
+
+    @abstractmethod
+    def update_stack(self, regmap: TypeRegmap, stack: TypeStack):
+        pass
+
+
+class InstPop(InstStack):
     def __init__(self, direct: Direct):
-        super().__init__(Operator.POP, left=direct)
+        super().__init__(Operator.POP, direct=direct)
 
     def dry_run(self, regmap : TypeRegmap) -> Expr | None:
+       regmap[Reg.SP] = Expr("-", regmap[Reg.SP], Expr(2))
        return None
 
+    def update_stack(self, regmap: TypeRegmap, stack: TypeStack):
+       assert isinstance(self.left, Direct)
+       h, l, i = self.left.value
+       assert i == 0
+       regmap[h] = stack.pop()
+       regmap[l] = stack.pop()
 
-class InstPush(Instruction):
+
+class InstPush(InstStack):
     def __init__(self, direct: Direct):
-        super().__init__(Operator.PUSH, left=direct)
+        super().__init__(Operator.PUSH, direct=direct)
 
     def dry_run(self, regmap : TypeRegmap) -> Expr | None:
+       regmap[Reg.SP] = Expr("+", regmap[Reg.SP], Expr(2))
        return None
+
+    def update_stack(self, regmap : TypeRegmap, stack: TypeStack):
+       assert isinstance(self.left, Direct)
+       h, l, i = self.left.value
+       assert i == 0
+       stack.append(regmap[l])
+       stack.append(regmap[h])
 
 class InstALU8bit(Instruction):
     def __init__(self, op: Operator, operand: OpdType=Reg.A):
