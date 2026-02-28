@@ -99,10 +99,10 @@ class Deref:
         self._operand = operand
 
     @property
-    def operand(self):
+    def operand(self) ->  Reg | Direct | int:
         return self._operand
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"[{self.operand}]"
 
 OpdType = Reg | Deref | Direct | Cond | int
@@ -132,14 +132,14 @@ def r_value(val: OpdType | None, regmap : TypeRegmap) -> Expr:
     elif isinstance(val, Reg):
         return regmap[val]
     elif isinstance(val, Deref):
-        return r_value(val.operand, regmap)
+        return Expr("*", r_value(val.operand, regmap))
 
     raise Exception(f"could not handle r-value '{val}' of type '{type(val)}'")
 
 class Instruction(ABC):
 
     @staticmethod
-    def Empty():
+    def Empty() -> 'Instruction':
         return InstControl(Operator.NOP)
 
     def __init__(self,
@@ -151,12 +151,13 @@ class Instruction(ABC):
         self.right = right
 
     @property
-    def operand(self):
+    def operand(self) -> OpdType:
         assert (self.left or self.right) and not (self.left and self.right)
         return cast(OpdType, self.left or self.right)
 
     @property
-    def op(self):
+    def op(self) -> Operator:
+        assert self._op
         return self._op
 
     def __repr__(self):
