@@ -128,8 +128,9 @@ class Deref:
 OpdType = Reg | Deref | Direct | Cond | int
 
 TypeRegmap = dict[Reg, Expr]
+TypeStack = list[Expr]
 
-def create_initial_regmap() -> TypeRegmap:
+def create_initial_regmap() -> tuple[TypeRegmap, TypeStack]:
     return {
         Reg.A : Expr(0x11),
         Reg.B : Expr(0),
@@ -141,7 +142,7 @@ def create_initial_regmap() -> TypeRegmap:
         Reg.L : Expr(0xd),
         Reg.SP : Expr(0xfffe),
         Reg.PC : Expr(0x100),
-    }
+    }, []
 
 def r_value(val: OpdType | None, regmap : TypeRegmap) -> Expr:
     assert val is not None

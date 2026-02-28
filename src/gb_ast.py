@@ -64,7 +64,7 @@ class ASTNodeJumpHandler(ASTNode):
         super().__init__(scope=[])
 
 
-def make_scope_for_func(content: list[Token], regmap: syntax.TypeRegmap) -> list:
+def make_scope_for_func(content: list[Token], regmap: syntax.TypeRegmap, stack: syntax.TypeStack) -> list:
     scope: list = []
     for tok in content:
         expr = tok.inst.dry_run(regmap)
@@ -74,8 +74,8 @@ def make_scope_for_func(content: list[Token], regmap: syntax.TypeRegmap) -> list
 
 def build_ast(explored_tokens) -> ASTNode:
     scope: list = []
-    regmap: syntax.TypeRegmap = syntax.create_initial_regmap()
+    regmap, stack = syntax.create_initial_regmap()
     for func, content in explored_tokens.items():
-        func_scope = make_scope_for_func(content, regmap)
+        func_scope = make_scope_for_func(content, regmap, stack)
         scope.append(ASTNodeFunc(name=func, scope=func_scope))
     return ASTNodeInitial(scope=scope)
