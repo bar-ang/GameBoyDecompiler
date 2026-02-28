@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from expr import Expr
 from enum import Enum
+from typing import cast
 
 class Operator(Enum):
     LD = "LD"
@@ -155,7 +156,7 @@ class Instruction(ABC):
     @property
     def operand(self):
         assert (self.left or self.right) and not (self.left and self.right)
-        return self.left or self.right
+        return cast(OpdType, self.left or self.right)
 
     @property
     def op(self):
