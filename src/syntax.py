@@ -153,7 +153,10 @@ def r_value(val: OpdType | None, regmap : TypeRegmap) -> Expr:
         return regmap[val]
     elif isinstance(val, Deref):
         return Expr("*", r_value(val.operand, regmap))
-
+    elif isinstance(val, Direct):
+        h, l, i = val.value
+        assert i == 0
+        return Expr(".", regmap[h], regmap[l])
     raise Exception(f"could not handle r-value '{val}' of type '{type(val)}'")
 
 class Instruction(ABC):
