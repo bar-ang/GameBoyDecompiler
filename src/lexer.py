@@ -7,6 +7,8 @@ DIRECT_OP = Deref(Direct.HL)
 REG_ORDER:   list[Reg | Deref]        = [Reg.B, Reg.C, Reg.D, Reg.E, Reg.H, Reg.L, DIRECT_OP, Reg.A]
 REG16_ORDER: list[Direct]   = [Direct.BC, Direct.DE, Direct.HLPlus, Direct.HLMinus]
 OP_ORDER:    list[Operator]    = [Operator.ADD, Operator.ADC, Operator.SUB, Operator.SBC, Operator.AND, Operator.XOR, Operator.OR, Operator.CP]
+CB_ORDER: list[Operator] = [Operator.RLC, Operator.RRC, Operator.RR, Operator.SLA, Operator.SRA, Operator.SWAP, Operator.SRL]
+CB_BIT_ORDER: list[Operator] = [Operator.BIT, Operator.RES, Operator.SET]
 COND_ORDER:  list[Cond]      = [Cond.NZ, Cond.Z, Cond.NC, Cond.C]
 INC_ORDER:   list[Operator]   = [Operator.INC, Operator.DEC]
 
@@ -219,9 +221,11 @@ def consume(code, pos, endianness="little") -> tuple[Instruction, int]:
 
         op = code[pos+1]
         reg = op & 7
-        beta =  op >> 3
 
-        return InstRotShift(Operator.BETA, REG_ORDER[reg]), n_bytes
+        if op < 0x40:
+            return InstRotShift(CB_ORDER[op >> 3], REG_ORDER[reg]), n_bytes
+        else:
+            return InstBit(CB_BIT_ORDER[(op >> 6) - 1], bit=(op >> 3) & 7, operand=REG_ORDER[reg]), n_bytes
 
     elif opcode < 0x40 and opcode & 0xF == 1:
         # 16 bits immediate value LD commands

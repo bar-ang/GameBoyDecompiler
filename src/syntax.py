@@ -37,7 +37,17 @@ class Operator(Enum):
     CB = "CB"
     DI = "DI"
     EI = "EI"
-    BETA = "β"
+    RLC = "RLC"
+    RRC = "RRC"
+    RL = "RL"
+    RR = "RR"
+    SLA = "SLA"
+    SRA = "SRA"
+    SWAP = "SWAP"
+    SRL = "SRL"
+    BIT = "BIT"
+    RES = "RES"
+    SET = "SET"
 
     def __str__(self):
         return f"{self.value}"
@@ -50,7 +60,13 @@ SIGNS = {
     Operator.OR:  "|",
     Operator.XOR: "^",
     Operator.AND: "&",
-    Operator.BETA: "β",
+    Operator.SLA: "<<1",
+    Operator.SRA: ">>`1",
+    Operator.SWAP: "SWAP", # TODO: no existing sign for that
+    Operator.SRL: "<<1",
+    Operator.BIT: ":",     # TODO: no existing sign for that
+    Operator.SET: "-on",   # TODO: no existing sign for that
+    Operator.RES: "-off",  # TODO: no existing sign for that 
 }
 
 class Reg(Enum):
@@ -360,11 +376,22 @@ class InstRotShift(Instruction):
 
     def dry_run(self, regmap : TypeRegmap) -> Expr | None:
         assert isinstance(self.left, Reg)
-        assert isinstance(self.right, Reg)
 
-        regmap[self.left] = Expr(SIGNS[self.op], regmap[self.left], regmap[self.right])
+        regmap[self.left] = Expr(SIGNS[self.op], regmap[self.left])
         return None
 
+
+class InstBit(Instruction):
+    def __init__(self, op: Operator, bit: int, operand: OpdType=Reg.A):
+        super().__init__(op, left=bit, right=operand)
+
+    def dry_run(self, regmap : TypeRegmap) -> Expr | None:
+        assert isinstance(self.left, int)
+        assert isinstance(self.right, Reg)
+        assert self.left >= 0 and self.left < 10
+
+        regmap[self.right] = Expr(SIGNS[self.op], regmap[self.right], Expr(self.left))
+        return None
 
 class InstRst(Instruction):
     def __init__(self, imm:int):
