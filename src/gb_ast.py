@@ -68,6 +68,8 @@ def make_scope_for_func(content: list[Token], regmap: syntax.TypeRegmap, stack: 
     scope: list = []
     for tok in content:
         expr = tok.inst.dry_run(regmap)
+        if isinstance(tok.inst, syntax.InstStack):
+            tok.inst.update_stack(regmap, stack)
         if expr:
             scope.append(ASTNodeExpression(expr))
     return scope
