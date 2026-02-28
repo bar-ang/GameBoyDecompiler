@@ -356,7 +356,7 @@ class InstALU16bit(Instruction):
 
 class InstRotShift(Instruction):
     def __init__(self, op: Operator, operand: OpdType=Reg.A):
-        super().__init__(op, left=operand)
+        super().__init__(op, left=operand, right=operand)
 
     def dry_run(self, regmap : TypeRegmap) -> Expr | None:
         assert isinstance(self.left, Reg)
