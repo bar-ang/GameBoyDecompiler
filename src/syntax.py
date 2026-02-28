@@ -57,6 +57,9 @@ SIGNS = {
     Operator.SUB: "-",
     Operator.ADC: "+`",
     Operator.SBC: "-`",
+    Operator.INC: "+",
+    Operator.DEC: "-",
+    Operator.CPL: "~",
     Operator.OR:  "|",
     Operator.XOR: "^",
     Operator.AND: "&",
@@ -67,6 +70,7 @@ SIGNS = {
     Operator.BIT: ":",     # TODO: no existing sign for that
     Operator.SET: "-on",   # TODO: no existing sign for that
     Operator.RES: "-off",  # TODO: no existing sign for that 
+    Operator.RR: "RR"
 }
 
 class Reg(Enum):
