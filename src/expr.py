@@ -34,6 +34,17 @@ class Expr:
         assert type(self.op) == int
         return f"${self.op:0{self.size_bytes}X}"
 
+    @property
+    def high(self) -> Expr:
+        return Expr("HIGH", self)
+
+    @property
+    def low(self) -> Expr:
+        return Expr("LOW", self)
+
+    def split(self) -> tuple[Expr, Expr]:
+        return self.high, self.low
+
     def __repr__(self):
         return self.__str__()
 

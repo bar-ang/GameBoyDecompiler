@@ -299,7 +299,11 @@ class InstLd8bit(Instruction):
             regmap[self.left] = rv
             return None
         elif isinstance(self.left, Direct):
-            raise Exception("unimplemented")
+            h, l, i = self.left.value
+            assert i == 0, "unimplemented"
+            regmap[h] = rv.high
+            regmap[l] = rv.low
+            return None
         elif isinstance(self.left, Deref):
             inner = self.left.operand
             return Expr(":=", Expr("*", r_value(inner, regmap)), rv)
