@@ -318,12 +318,12 @@ class InstLd8bit(Instruction):
 
 class InstLdhLoad(InstLd8bit):
     def __init__(self, addr: int):
-        super().__init__(Reg.A, addr + 0xff00)
+        super().__init__(Reg.A, Deref(addr + 0xff00))
 
 
 class InstLdhStore(InstLd8bit):
     def __init__(self, addr: int):
-        super().__init__(addr + 0xff00, Reg.A)
+        super().__init__(Deref(addr + 0xff00), Reg.A)
 
 
 class InstLdhCLoad(InstLd8bit):
