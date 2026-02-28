@@ -36,10 +36,14 @@ class Expr:
 
     @property
     def high(self) -> Expr:
+        if isinstance(self.op, int):
+            return Expr(self.op >> 8)
         return Expr("HIGH", self)
 
     @property
     def low(self) -> Expr:
+        if isinstance(self.op, int):
+            return Expr(self.op & 0xff)
         return Expr("LOW", self)
 
     def split(self) -> tuple[Expr, Expr]:
