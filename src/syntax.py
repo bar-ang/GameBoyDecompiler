@@ -102,9 +102,6 @@ class Deref:
     def operand(self):
         return self._operand
 
-    def store_expr(self, val: Expr):
-        return Expr(":=", Expr("*", self.operand), val)
-
     def __str__(self):
         return f"[{self.operand}]"
 
@@ -287,7 +284,8 @@ class InstLd8bit(Instruction):
         elif isinstance(self.left, Direct):
             raise Exception("unimplemented")
         elif isinstance(self.left, Deref):
-            return self.left.store_expr(rv)
+            inner = self.left.operand
+            return Expr(":=", Expr("*", r_value(inner, regmap)), rv)
 
         raise Exception(f"cannot handle LD left value that is '{self.left}' of type '{type(self.left)}'")
         return None
