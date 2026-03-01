@@ -9,7 +9,7 @@ start:
 ; opened IF
 	ld a, [$f000]
 	cp a, 5
-	jp c,  too_small
+	jr c,  too_small
 	inc a
 	and a, $f
 too_small:
@@ -18,7 +18,7 @@ too_small:
 ; closed IF
 	ld a, [$b000]
 	and a
-	jp nz, skip
+	jr nz, skip
 	ld a, [$b001]
 	ld [$b002], a
 skip:
