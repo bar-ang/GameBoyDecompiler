@@ -7,6 +7,7 @@ action_binary = {
     "+": lambda a, b: a + b,
     "-": lambda a, b: a - b,
     "^": lambda a, b: a ^ b,
+    ".": lambda a, b: 256*a + b
 }
 
 action_unary = {
