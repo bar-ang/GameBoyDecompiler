@@ -94,12 +94,15 @@ class Expr:
         if self.b:
             opb = self.b.optimize()
 
-        if opa and opb and isinstance(opa.op, int) and isinstance(opb.op, int):
-            return Expr(action_binary[self.op](opa.op, opb.op))
-        elif opa and isinstance(opa.op, int) and not opb:
-            return Expr(action_unary[self.op](opa.op))
-        elif opb and isinstance(opb.op, int) and not opa:
-            return Expr(action_unary[self.op](opb.op))
+        try:
+            if opa and opb and isinstance(opa.op, int) and isinstance(opb.op, int):
+                return Expr(action_binary[self.op](opa.op, opb.op))
+            elif opa and isinstance(opa.op, int) and not opb:
+                return Expr(action_unary[self.op](opa.op))
+            elif opb and isinstance(opb.op, int) and not opa:
+                return Expr(action_unary[self.op](opb.op))
+        except KeyError:
+            pass
 
         return Expr(self.op, opa, opb)
 
