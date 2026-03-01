@@ -64,20 +64,36 @@ class ASTNodeJumpHandler(ASTNode):
         super().__init__(scope=[])
 
 
-def make_scope_for_func(content: list[Token], regmap: syntax.TypeRegmap, stack: syntax.TypeStack) -> list:
+def make_scope_for_func(content_begin: Token, regmap: syntax.TypeRegmap, stack: syntax.TypeStack, token_end: Token | None=None) -> list:
     scope: list = []
-    for tok in content:
-        expr = tok.inst.dry_run(regmap)
-        if isinstance(tok.inst, syntax.InstStack):
-            tok.inst.update_stack(regmap, stack)
-        if expr:
-            scope.append(ASTNodeExpression(expr))
+    tok = content_begin
+    while tok is not None and tok is not token_end:
+        if tok.next_cond_token:
+            after = tok.next_cond_token
+            cond = ASTNodeExpression(
+                Expr(syntax.CONDITIONS[tok.inst.cond],
+                     regmap[syntax.Reg.A], Expr(0)
+                )
+            )
+            if_scope = make_scope_for_func(
+                tok.next_token, regmap, stack, token_end=after
+            )
+            scope.append(ASTNodeIfStmt(cond, scope=if_scope))
+            tok = after
+        else:
+            expr = tok.inst.dry_run(regmap)
+            if isinstance(tok.inst, syntax.InstStack):
+                tok.inst.update_stack(regmap, stack)
+            if expr:
+                scope.append(ASTNodeExpression(expr))
+            tok = tok.next_token
+
     return scope
 
 def build_ast(explored_tokens) -> ASTNode:
     scope: list = []
     regmap, stack = syntax.create_initial_regmap()
     for func, content in explored_tokens.items():
-        func_scope = make_scope_for_func(content, regmap, stack)
+        func_scope = make_scope_for_func(content[0], regmap, stack)
         scope.append(ASTNodeFunc(name=func, scope=func_scope))
     return ASTNodeInitial(scope=scope)

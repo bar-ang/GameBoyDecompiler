@@ -114,6 +114,14 @@ class Cond(Enum):
     def __str__(self):
         return f"{self.value}"
 
+# NOTE: we take the opposite of the ASM command!
+CONDITIONS = {
+    Cond.C: ">=",
+    Cond.Z: "!=",
+    Cond.NC: "<",
+    Cond.NZ: "==",
+}
+
 class Deref:
     def __init__(self, operand : Reg | Direct | int):
         self._operand = operand
