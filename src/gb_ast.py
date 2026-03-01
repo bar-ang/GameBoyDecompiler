@@ -49,7 +49,7 @@ class ASTNodeExpression(ASTNode):
         super().__init__(scope=[])
 
     def __str__(self):
-        return str(self.expr)
+        return str(self.expr.optimize())
 
 class ASTNodeText(ASTNode):
     def __init__(self, text: str):
