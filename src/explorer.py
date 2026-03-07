@@ -38,8 +38,55 @@ def identify_func_len(tokens, start):
             return i
     raise Exception("unfortunate CALL without a following RET")
 
-def close_conditions(head_token: lexer.Token) -> lexer.Token:
-   return head_token
+
+def close_conditions(head_token: lexer.Token) -> None:
+    tok: lexer.Token | None = head_token
+    while tok is not None:
+        if not tok.conditional():
+            tok = tok.next_feature
+            continue
+
+        assert tok.jump_addr
+        assert tok.if_cond_unmet
+        assert tok.next_feature
+
+        head = tok
+        regmap_met, _ = syntax.create_initial_regmap()
+        regmap_unmet, _ = syntax.create_initial_regmap()
+
+        met: lexer.Token = tok.jump_addr
+        unmet: lexer.Token = tok.if_cond_unmet
+        end: lexer.Token | None = tok.next_feature
+
+        if not met is end:
+            while True:
+                met.inst.dry_run(regmap_met)
+                assert met.next_feature
+                if met.next_feature is end:
+                    break
+                met = met.next_feature
+        else:
+            met = head
+
+        if not unmet is end:
+            while True:
+                unmet.inst.dry_run(regmap_unmet)
+                assert unmet.next_feature
+                if unmet.next_feature is end:
+                    break
+                unmet = unmet.next_feature
+        else:
+            unmet = head
+
+        end.inst.dry_run(regmap_met)
+        end.inst.dry_run(regmap_unmet)
+
+        if regmap_met != regmap_unmet:
+             new_end = end.soft_copy()
+             unmet.next_feature = new_end
+
+        tok = end
+
 
 def map_all_funcs(tokens, calls):
     funcs = {}

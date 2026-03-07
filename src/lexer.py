@@ -34,12 +34,27 @@ class Token:
         self.jump_addr = jump_addr
         self.if_cond_unmet = if_cond_unmet
 
+    def soft_copy(self) -> Token:
+        '''
+        Creates a copy of the token but still points to the same
+        instance of the instruction
+        '''
+        return Token(
+            self._inst, self._pc,
+            self.next_feature,
+            self.jump_addr,
+            self.if_cond_unmet
+        )
+
     def absolute_addr(self) -> int:
         assert isinstance(self.inst, InstJump)
         if isinstance(self.inst, InstJp):
             return self.inst.addr
         else:
             return self.inst.addr + self.pc + 2
+
+    def conditional(self) -> bool:
+        return self.if_cond_unmet is not None
 
     @property
     def inst(self) -> Instruction:
