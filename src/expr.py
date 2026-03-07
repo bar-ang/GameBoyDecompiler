@@ -144,8 +144,14 @@ def main() -> int:
 
     xxor = Expr.make("^", 9, 9)
     print(f"{xxor} --> {xxor.optimize()}")
-    xxor = Expr("^", Expr("foo"), Expr("foo"))
-    print(f"{xxor} --> {xxor.optimize()}")
+    xxor2 = Expr("^", Expr("foo"), Expr("foo"))
+    print(f"{xxor2} --> {xxor2.optimize()}")
+
+    assert a == Expr("a")
+    assert t2 == Expr("*", c, t)
+    assert Expr(0) == xxor.optimize()
+    assert Expr("^", Expr("foo"), Expr("foo")) == xxor2.optimize()
+
     return 0
 
 if __name__ == "__main__":
