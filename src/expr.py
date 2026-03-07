@@ -84,6 +84,18 @@ class Expr:
 
         return f"{str_a}{self.op_as_str()}{str_b}"
 
+    def __eq__(self, other) -> bool:
+        if not other:
+            return False
+
+        if self.op != other.op:
+            return False
+
+        if not (self.a == other.a and self.b == other.b):
+            return False
+
+        return True
+
     def optimize(self) -> Expr:
         opa = None
         opb = None
