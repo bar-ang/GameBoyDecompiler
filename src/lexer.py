@@ -34,7 +34,7 @@ class Token:
         self.jump_addr = jump_addr
         self.if_cond_unmet = if_cond_unmet
 
-    def absolute_addr(self):
+    def absolute_addr(self) -> int:
         assert isinstance(self.inst, InstJump)
         if isinstance(self.inst, InstJp):
             return self.inst.addr
