@@ -3,17 +3,6 @@ from lexer import tokenize_code
 from explorer import explore
 from gb_ast import build_ast
 
-def print_debugging_data(code):
-    print(" ".join([f"{c:02X}" for c in code]))
-    inst = b""
-    for c in code:
-        inst += bytes([c])
-        dis = disassembler.disasm(inst, 0)
-        if dis:
-            print(dis)
-            inst = b""
-    if inst:
-        print(f"also: {inst}")
 
 def main(gb_file):
     with open(gb_file, "rb") as f:
