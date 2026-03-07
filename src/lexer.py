@@ -1,3 +1,4 @@
+from __future__ import annotations
 from functools import total_ordering
 from syntax import *
 import sys
@@ -24,14 +25,14 @@ class UnknownInstructionException(Exception):
 @total_ordering
 class Token:
     def __init__(self, inst : Instruction, pc: int,
-                 next_token=None,
-                 next_cond_token=None):
-        assert not next_token or isinstance(next_token, Token)
-        assert not next_cond_token or isinstance(next_cond_token, Token)
+                 next_feature: Token | None=None,
+                 jump_addr: Token | None=None,
+                 if_cond_unmet: Token | None=None):
         self._inst = inst
         self._pc = pc
-        self.next_token = next_token
-        self.next_cond_token = next_cond_token
+        self.next_feature = next_feature
+        self.jump_addr = jump_addr
+        self.if_cond_unmet = if_cond_unmet
 
     def absolute_addr(self):
         assert isinstance(self.inst, InstJump)
