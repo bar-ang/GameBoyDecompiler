@@ -38,6 +38,9 @@ def identify_func_len(tokens, start):
             return i
     raise Exception("unfortunate CALL without a following RET")
 
+def close_conditions(head_token: lexer.Token) -> lexer.Token:
+   return head_token
+
 def map_all_funcs(tokens, calls):
     funcs = {}
     for call_addr in calls:
@@ -47,6 +50,7 @@ def map_all_funcs(tokens, calls):
         funcs.update(map_all_funcs(tokens, more_calls))
         funcs[f"fun_{call:04X}"] = tokens[call:call+flen]
         connect_tokens(tokens[call:call+flen])
+        close_conditions(tokens[call])
     return funcs
 
 def handle_entry_point(tokens, pc_start):
@@ -89,6 +93,7 @@ def explore(tokens, pc_start=0x100, main_func="main"):
 
     funcmap[main_func] = tokens[main_start: jr_pos]
     connect_tokens(tokens[main_start: jr_pos])
+    close_conditions(tokens[main_start])
     funcmap.update(map_all_funcs(tokens, calls))
 
     return funcmap
