@@ -6,11 +6,14 @@ from lexer import Token
 INDENT = " " * 4
 
 class ASTNode:
-    def __init__(self, scope: list['ASTNode']):
-        self.scope = scope
+    def __init__(self, scope: list['ASTNode'], *alt_scope):
+        self.scope = [scope] + list(alt_scope)
 
-    def content(self) -> str:
-        return "\n".join([str(c) for c in self.scope])
+    def nun_scopes(self) -> int:
+        return len(self.scope)
+
+    def content(self, alt=0) -> str:
+        return "\n".join([str(c) for c in self.scope[alt]])
 
     def __str__(self):
         return "???"
