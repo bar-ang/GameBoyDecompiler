@@ -64,7 +64,7 @@ def handle_entry_point(tokens, pc_start):
     assert j
     return j
 
-def connect_tokens(tokens):
+def connect_tokens(tokens: list[lexer.Token]) -> lexer.Token:
     for i, tok in enumerate(tokens):
         inst = tok.inst
         if isinstance(inst, syntax.InstRet) or \
@@ -72,13 +72,15 @@ def connect_tokens(tokens):
            isinstance(inst, syntax.InstConditionalRet):
             raise Exception(f"Token-linking is not supported for instruction: {inst}")
 
-        if i < len(tokens) - 1:
-            tok.next_token = tokens[i+1]
+        if isinstance(inst, syntax.InstJump):
+            tok.jump_addr = tokens[find_token_by_pc(tokens, tok.absolute_addr())]
+            tok.if_cond_unmet = tokens[i+1]
+            tok.next_feature = tok.jump_addr
+        elif  i < len(tokens) - 1:
+            tok.next_feature = tokens[i+1]
 
-        if isinstance(inst, syntax.InstJump) and inst.cond:
-            t = find_token_by_pc(tokens, tok.absolute_addr())
-            tok.next_cond_token = tokens[t]
 
+    return tokens[0]
 
 def explore(tokens, pc_start=0x100, main_func="main"):
     funcmap = {}
@@ -92,8 +94,8 @@ def explore(tokens, pc_start=0x100, main_func="main"):
     calls = extract_func_calling(tokens, main_start, jr_pos - main_start)
 
     funcmap[main_func] = tokens[main_start: jr_pos]
-    connect_tokens(tokens[main_start: jr_pos])
-    close_conditions(tokens[main_start])
+    connected_tokens = connect_tokens(tokens[main_start: jr_pos])
+    close_conditions(connected_tokens)
     funcmap.update(map_all_funcs(tokens, calls))
 
     return funcmap
