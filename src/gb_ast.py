@@ -39,12 +39,14 @@ class ASTNodeLoopStmt(ASTNode):
         return f"while({self.cond}) {{\n{tw.indent(self.content(), INDENT)}\n}}"
 
 class ASTNodeIfStmt(ASTNode):
-    def __init__(self, cond: ASTNode, scope: list[ASTNode]):
-        super().__init__(scope)
+    def __init__(self, cond: ASTNode, scope: list[ASTNode], else_scope: list[ASTNode]):
+        super().__init__(scope, else_scope)
         self.cond = cond
 
     def __str__(self):
-        return f"if({self.cond}) {{\n{tw.indent(self.content(), INDENT)}\n}}"
+        in_if = tw.indent(self.content(), INDENT)
+        in_else = tw.indent(self.content(1), INDENT)
+        return f"if({self.cond}) {{\n{in_if}\n}} else {{\n{in_else}\n}}"
 
 class ASTNodeExpression(ASTNode):
     def __init__(self, expr: Expr):
