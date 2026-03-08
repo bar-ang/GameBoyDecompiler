@@ -84,6 +84,8 @@ def close_conditions(head_token: lexer.Token) -> None:
         if regmap_met != regmap_unmet:
              new_end = end.soft_copy()
              unmet.next_feature = new_end
+             head.next_feature = end.next_feature
+             #close_conditions(head)
 
         tok = end
 
