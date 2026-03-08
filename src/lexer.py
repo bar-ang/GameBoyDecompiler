@@ -1,5 +1,6 @@
 from __future__ import annotations
 from functools import total_ordering
+from graphviz import Digraph
 from syntax import *
 import sys
 
@@ -45,6 +46,34 @@ class Token:
             self.jump_addr,
             self.if_cond_unmet
         )
+
+    def save_graph(token: Token, filename="token_graph"):
+        g = Digraph("tokens", strict=True)
+        g.attr(rankdir="TD")
+        token.to_graph(g)
+        g.render(filename, format="png", cleanup=True)
+
+    def to_graph(self, graph):
+        g = graph
+
+        src = str(id(self))
+        g.node(src, str(self), shape="box")
+
+        if self.jump_addr is not None:
+            self.jump_addr.to_graph(g)
+            g.edge(src, str(id(self.jump_addr)),
+                   label="met", color="blue")
+
+        if self.next_feature is not None:
+            self.next_feature.to_graph(g)
+            g.edge(src, str(id(self.next_feature)),
+                   color="black")
+
+        if self.if_cond_unmet is not None:
+            self.if_cond_unmet.to_graph(g)
+            g.edge(src, str(id(self.if_cond_unmet)),
+                   label="unmet", color="red")
+
 
     def absolute_addr(self) -> int:
         assert isinstance(self.inst, InstJump)
