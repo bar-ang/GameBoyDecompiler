@@ -1,3 +1,4 @@
+from graphviz import Digraph
 import syntax
 import lexer
 import sys
@@ -201,7 +202,12 @@ def main(gb_file):
     tokens = lexer.tokenize_code(readed)
     print("exploring function:")
     funcmap = explore(tokens)
-    print("\n".join([f"{fun}:\n{"\n".join([f"\t{c}" for c in cont])}" for fun, cont in funcmap.items()]))
+
+    g = Digraph("tokens", strict=True)
+    g.attr(rankdir="TD")
+    for fun, content in funcmap.items():
+        content.to_graph(g)
+    g.render("token_graph", format="png", cleanup=True)
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
