@@ -64,7 +64,27 @@ def handle_entry_point(tokens, pc_start):
     assert j
     return j
 
+def get_next_feature(token: lexer.Token) -> lexer.Token:
+    def intersect(a, b):
+        b_ids = {id(x) for x in b}
+        return [x for x in a if id(x) in b_ids]
+    assert token.jump_addr
+    assert token.if_cond_unmet
+    left_seen: list[lexer.Token] = [token.jump_addr]
+    right_seen: list[lexer.Token] = [token.if_cond_unmet]
+    while True:
+        sec = intersect(left_seen, right_seen)
+        if len(sec):
+            return sec[0]
+        nl = left_seen[-1].next_feature
+        nr = right_seen[-1].next_feature
+        assert nl
+        assert nr
+        left_seen.append(nl)
+        right_seen.append(nr)
+
 def connect_tokens(tokens: list[lexer.Token]) -> lexer.Token:
+    missing_next_feature = []
     for i, tok in enumerate(tokens):
         inst = tok.inst
         if isinstance(inst, syntax.InstRet) or \
@@ -73,12 +93,19 @@ def connect_tokens(tokens: list[lexer.Token]) -> lexer.Token:
             raise Exception(f"Token-linking is not supported for instruction: {inst}")
 
         if isinstance(inst, syntax.InstJump):
-            tok.jump_addr = tokens[find_token_by_pc(tokens, tok.absolute_addr())]
-            tok.if_cond_unmet = tokens[i+1]
-            tok.next_feature = tok.jump_addr
+            t = find_token_by_pc(tokens, tok.absolute_addr())
+            assert t
+            tok.jump_addr = tokens[t]
+            if inst.cond:
+                tok.if_cond_unmet = tokens[i+1]
+                missing_next_feature.append(tok)
+            else:
+                tok.next_feature = tok.jump_addr
         elif  i < len(tokens) - 1:
             tok.next_feature = tokens[i+1]
 
+    for tok in missing_next_feature[::-1]:
+        tok.next_feature = get_next_feature(tok)
 
     return tokens[0]
 
