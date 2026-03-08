@@ -106,6 +106,10 @@ class Expr:
         if self.b:
             opb = self.b.optimize()
 
+        if isinstance(self.op, int):
+            assert not opa and not opb
+            return Expr(self.op)
+
         try:
             if opa and opb and isinstance(opa.op, int) and isinstance(opb.op, int):
                 return Expr(action_binary[self.op](opa.op, opb.op))
