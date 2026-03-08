@@ -74,10 +74,12 @@ def make_scope_for_func(content_begin: Token,
                         stack: syntax.TypeStack,
                         token_end: Token | None=None) -> list:
     scope: list = []
-    tok = content_begin
+    tok: Token | None = content_begin
     while tok is not None and tok is not token_end:
         if tok.jump_addr:
+            assert isinstance(tok.inst, syntax.InstJump)
             if tok.if_cond_unmet:
+                assert tok.inst.cond
                 after = tok.next_feature
                 cond = ASTNodeExpression(
                     Expr(syntax.CONDITIONS[tok.inst.cond],
