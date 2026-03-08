@@ -12,7 +12,6 @@ def main(gb_file):
     tokens = tokenize_code(raw_code)
     print("exploring...")
     explored = explore(tokens)
-    print("\n".join([f"{fun}:\n{"\n".join([f"\t{c}" for c in cont])}" for fun, cont in explored.items()]))
     print("building AST...")
     ast = build_ast(explored)
 

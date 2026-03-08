@@ -98,10 +98,10 @@ def map_all_funcs(tokens, calls):
         flen = identify_func_len(tokens, call)
         more_calls = extract_func_calling(tokens, call, flen)
         funcs.update(map_all_funcs(tokens, more_calls))
-        funcs[f"fun_{call:04X}"] = tokens[call:call+flen]
-        connect_tokens(tokens[call:call+flen])
-        add_nops(tokens[call:call+flen])
-        close_conditions(tokens[call])
+        con = connect_tokens(tokens[call:call+flen])
+        add_nops(con)
+        funcs[f"fun_{call:04X}"] = con
+        close_conditions(con)
     return funcs
 
 def handle_entry_point(tokens, pc_start):
@@ -186,8 +186,8 @@ def explore(tokens, pc_start=0x100, main_func="main"):
 
     calls = extract_func_calling(tokens, main_start, jr_pos - main_start)
 
-    funcmap[main_func] = tokens[main_start: jr_pos]
     connected_tokens = connect_tokens(tokens[main_start: jr_pos])
+    funcmap[main_func] = connected_tokens
     close_conditions(connected_tokens)
     add_nops(connected_tokens)
     funcmap.update(map_all_funcs(tokens, calls))
