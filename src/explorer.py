@@ -97,6 +97,7 @@ def map_all_funcs(tokens, calls):
         funcs.update(map_all_funcs(tokens, more_calls))
         funcs[f"fun_{call:04X}"] = tokens[call:call+flen]
         connect_tokens(tokens[call:call+flen])
+        add_nops(tokens[call:call+flen])
         close_conditions(tokens[call])
     return funcs
 
@@ -156,6 +157,21 @@ def connect_tokens(tokens: list[lexer.Token]) -> lexer.Token:
 
     return tokens[0]
 
+def add_nops(head: lexer.Token) -> None:
+    curr = head
+    while curr is not None:
+        if curr.conditional():
+            if curr.next_feature is curr.jump_addr:
+                nop = lexer.Token(syntax.Instruction.Empty(), 0,
+                                  next_feature=curr.next_feature)
+                curr.jump_addr = nop
+            if curr.next_feature is curr.if_cond_unmet:
+                nop = lexer.Token(syntax.Instruction.Empty(), 0,
+                                  next_feature=curr.next_feature)
+                curr.if_cond_unmet = nop
+
+        curr = curr.next_feature
+
 def explore(tokens, pc_start=0x100, main_func="main"):
     funcmap = {}
 
@@ -170,6 +186,7 @@ def explore(tokens, pc_start=0x100, main_func="main"):
     funcmap[main_func] = tokens[main_start: jr_pos]
     connected_tokens = connect_tokens(tokens[main_start: jr_pos])
     close_conditions(connected_tokens)
+    add_nops(connected_tokens)
     funcmap.update(map_all_funcs(tokens, calls))
 
     return funcmap
