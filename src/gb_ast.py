@@ -69,6 +69,13 @@ class ASTNodeJumpHandler(ASTNode):
         super().__init__(scope=[])
 
 
+def make_cond_expr(cond: syntax.Cond, regmap: syntax.TypeRegmap) -> ASTNodeExpression:
+   return ASTNodeExpression(
+        Expr(syntax.CONDITIONS[cond],
+        regmap[syntax.Reg.A], Expr(0))
+    )
+
+
 def make_scope_for_func(content_begin: Token,
                         regmap: syntax.TypeRegmap,
                         stack: syntax.TypeStack,
@@ -81,12 +88,7 @@ def make_scope_for_func(content_begin: Token,
             if tok.if_cond_unmet:
                 assert tok.inst.cond
                 after = tok.next_feature
-                cond = ASTNodeExpression(
-                    Expr(syntax.CONDITIONS[tok.inst.cond],
-                         regmap[syntax.Reg.A], Expr(0)
-                    )
-                )
-
+                cond = make_cond_expr(tok.inst.cond, regmap)
                 if_scope = make_scope_for_func(
                     tok.jump_addr, regmap, stack, token_end=after
                 )
