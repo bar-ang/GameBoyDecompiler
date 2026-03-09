@@ -73,6 +73,12 @@ SIGNS = {
     Operator.RR: "RR"
 }
 
+class Flag(Enum):
+    Z = "Z"
+    N = "N"
+    H = "H"
+    C = "C"
+
 class Reg(Enum):
     A = "A"
     B = "B"
@@ -136,9 +142,10 @@ class Deref:
 OpdType = Reg | Deref | Direct | Cond | int
 
 TypeRegmap = dict[Reg, Expr]
+TypeFlagmap = dict[Flag, Expr]
 TypeStack = list[Expr]
 
-def create_initial_regmap() -> tuple[TypeRegmap, TypeStack]:
+def create_initial_regmap() -> tuple[TypeRegmap, TypeFlagmap, TypeStack]:
     return {
         Reg.A : Expr(0x11),
         Reg.B : Expr(0),
@@ -150,6 +157,11 @@ def create_initial_regmap() -> tuple[TypeRegmap, TypeStack]:
         Reg.L : Expr(0xd),
         Reg.SP : Expr(0xfffe),
         Reg.PC : Expr(0x100),
+    }, {
+        Flag.Z: Expr(1),
+        Flag.N: Expr(0),
+        Flag.H: Expr(0),
+        Flag.C: Expr(0),
     }, []
 
 def r_value(val: OpdType | None, regmap : TypeRegmap) -> Expr:

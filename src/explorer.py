@@ -52,8 +52,8 @@ def close_conditions(head_token: lexer.Token) -> None:
         assert tok.next_feature
 
         head = tok
-        regmap_met, _ = syntax.create_initial_regmap()
-        regmap_unmet, _ = syntax.create_initial_regmap()
+        regmap_met, _, _ = syntax.create_initial_regmap()
+        regmap_unmet, _, _ = syntax.create_initial_regmap()
 
         met: lexer.Token = tok.jump_addr
         unmet: lexer.Token = tok.if_cond_unmet

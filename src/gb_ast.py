@@ -115,7 +115,7 @@ def make_scope_for_func(content_begin: Token,
 
 def build_ast(explored_tokens) -> ASTNode:
     scope: list = []
-    regmap, stack = syntax.create_initial_regmap()
+    regmap, _, stack = syntax.create_initial_regmap()
     for func, content in explored_tokens.items():
         func_scope = make_scope_for_func(content, regmap, stack)
         scope.append(ASTNodeFunc(name=func, scope=func_scope))
