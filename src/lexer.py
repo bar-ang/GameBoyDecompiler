@@ -1,6 +1,6 @@
 from __future__ import annotations
 from functools import total_ordering
-from graphviz import Digraph
+from graphviz import Digraph # type: ignore[import-untyped]
 from syntax import *
 import sys
 

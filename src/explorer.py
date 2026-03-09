@@ -1,4 +1,4 @@
-from graphviz import Digraph
+from graphviz import Digraph # type: ignore[import-untyped]
 import syntax
 import lexer
 import sys
