@@ -69,15 +69,24 @@ class ASTNodeJumpHandler(ASTNode):
         super().__init__(scope=[])
 
 
-def make_cond_expr(cond: syntax.Cond, regmap: syntax.TypeRegmap) -> ASTNodeExpression:
-   return ASTNodeExpression(
-        Expr(syntax.CONDITIONS[cond],
-        regmap[syntax.Reg.A], Expr(0))
-    )
-
+def make_cond_expr(cond: syntax.Cond, flags: syntax.TypeFlagmap) -> ASTNodeExpression:
+    # we always the the the OPPOSITE of the condition in ASM!
+    if cond == syntax.Cond.NC:
+        return ASTNodeExpression(flags[syntax.Flag.C])
+    elif cond == syntax.Cond.NZ:
+        return ASTNodeExpression(flags[syntax.Flag.Z])
+    elif cond == syntax.Cond.C:
+        return ASTNodeExpression(
+            Expr("!", flags[syntax.Flag.C])
+        )
+    elif cond == syntax.Cond.Z:
+        return ASTNodeExpression(
+            Expr("!", flags[syntax.Flag.Z])
+        )
 
 def make_scope_for_func(content_begin: Token,
                         regmap: syntax.TypeRegmap,
+                        flags: syntax.TypeFlagmap,
                         stack: syntax.TypeStack,
                         token_end: Token | None=None) -> list:
     scope: list = []
@@ -88,13 +97,13 @@ def make_scope_for_func(content_begin: Token,
             if tok.if_cond_unmet:
                 assert tok.inst.cond
                 after = tok.next_feature
-                cond = make_cond_expr(tok.inst.cond, regmap)
+                cond = make_cond_expr(tok.inst.cond, flags)
                 if_scope = make_scope_for_func(
-                    tok.jump_addr, regmap, stack, token_end=after
+                    tok.jump_addr, regmap, flags, stack, token_end=after
                 )
 
                 else_scope = make_scope_for_func(
-                    tok.if_cond_unmet, regmap, stack, token_end=after
+                    tok.if_cond_unmet, regmap, flags, stack, token_end=after
                 )
 
                 # NOTE: we intentionally reverse the condition statement
@@ -115,8 +124,8 @@ def make_scope_for_func(content_begin: Token,
 
 def build_ast(explored_tokens) -> ASTNode:
     scope: list = []
-    regmap, _, stack = syntax.create_initial_regmap()
+    regmap, flags, stack = syntax.create_initial_regmap()
     for func, content in explored_tokens.items():
-        func_scope = make_scope_for_func(content, regmap, stack)
+        func_scope = make_scope_for_func(content, regmap, flags, stack)
         scope.append(ASTNodeFunc(name=func, scope=func_scope))
     return ASTNodeInitial(scope=scope)
