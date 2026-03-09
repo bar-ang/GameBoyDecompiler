@@ -161,7 +161,7 @@ def connect_tokens(tokens: list[lexer.Token]) -> lexer.Token:
     return tokens[0]
 
 def add_nops(head: lexer.Token) -> None:
-    curr = head
+    curr: lexer.Token | None = head
     while curr is not None:
         if curr.conditional():
             if curr.next_feature is curr.jump_addr:
