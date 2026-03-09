@@ -218,7 +218,6 @@ class Instruction(ABC):
     def dry_run(self, regmap : TypeRegmap) -> Expr | None:
         pass
 
-    @abstractmethod
     def update_flags(self, flags: TypeFlagmap, regmap: TypeRegmap) -> None:
         pass
 
@@ -228,6 +227,9 @@ class InstControl(Instruction):
 
     def dry_run(self, regmap : TypeRegmap) -> Expr | None:
         return None
+
+    def update_flags(self, flags: TypeFlagmap, regmap: TypeRegmap) -> None:
+        pass
 
 class InstFlow(Instruction):
     def __init__(self, op: Operator, cond: Cond | None=None, addr: int | None=None):
@@ -243,6 +245,9 @@ class InstFlow(Instruction):
 
     def dry_run(self, regmap : TypeRegmap) -> Expr | None:
         return None
+
+    def update_flags(self, flags: TypeFlagmap, regmap: TypeRegmap) -> None:
+        pass
 
 
 class InstJump(InstFlow):
@@ -334,6 +339,9 @@ class InstLd8bit(Instruction):
         raise Exception(f"cannot handle LD left value that is '{self.left}' of type '{type(self.left)}'")
         return None
 
+    def update_flags(self, flags: TypeFlagmap, regmap: TypeRegmap) -> None:
+        print("in Ld8bit flags might not be updated!")
+        pass
 
 class InstLdhLoad(InstLd8bit):
     def __init__(self, addr: int):
@@ -383,6 +391,9 @@ class InstPop(InstStack):
        regmap[h] = stack.pop()
        regmap[l] = stack.pop()
 
+    def update_flags(self, flags: TypeFlagmap, regmap: TypeRegmap) -> None:
+        print("in POP flags might not be updated!")
+        pass
 
 class InstPush(InstStack):
     def __init__(self, direct: Direct):
@@ -399,6 +410,9 @@ class InstPush(InstStack):
        stack.append(regmap[l])
        stack.append(regmap[h])
 
+    def update_flags(self, flags: TypeFlagmap, regmap: TypeRegmap) -> None:
+        pass
+
 class InstALU8bit(Instruction):
     def __init__(self, op: Operator, operand: OpdType=Reg.A):
         super().__init__(op, left=Reg.A, right=operand)
@@ -409,9 +423,37 @@ class InstALU8bit(Instruction):
         assert not isinstance(self.left, Direct)
         assert not isinstance(self.left, Deref)
         assert not isinstance(self.left, int)
-        rv = r_value(self.right, regmap)
-        regmap[self.left] = Expr(SIGNS.get(self.op, self.op.value), regmap[self.left], rv)
+        if self.op != Operator.CP:
+            rv = r_value(self.right, regmap)
+            regmap[self.left] = Expr(SIGNS.get(self.op, self.op.value), regmap[self.left], rv)
         return None
+
+    def update_flags(self, flags: TypeFlagmap, regmap: TypeRegmap) -> None:
+        assert self.left
+        assert not isinstance(self.left, Cond)
+        assert not isinstance(self.left, Direct)
+        assert not isinstance(self.left, Deref)
+        assert not isinstance(self.left, int)
+        if self.op in {Operator.OR, Operator.XOR}:
+            flags[Flag.C] = Expr(0)
+            flags[Flag.Z] = Expr("==", regmap[self.left], Expr(0))
+        elif self.op == Operator.AND:
+            flags[Flag.C] = Expr(1)
+            flags[Flag.Z] = Expr("==", regmap[self.left], Expr(0))
+        elif self.op == Operator.CP:
+            assert isinstance(self.right, Reg) or  isinstance(self.right, int)
+
+            if isinstance(self.right, Reg):
+                r = regmap[self.right]
+            else:
+                r = Expr(self.right)
+            flags[Flag.C] = Expr("@@", regmap[self.left], r)
+            flags[Flag.Z] = Expr("==", regmap[self.left], r)
+
+        else:
+            flags[Flag.C] = Expr("@@", regmap[self.left], Expr(0))
+            flags[Flag.Z] = Expr("==", regmap[self.left], Expr(0))
+
 
 
 class InstALU16bit(Instruction):
@@ -487,3 +529,7 @@ class InstDec(InstIncDec):
 class InstAddRegSP(InstALU8bit):
     def __init__(self, r8: int):
         super().__init__(Operator.ADD, operand=r8)
+
+    def update_flags(self, flags: TypeFlagmap, regmap: TypeRegmap) -> None:
+        raise Exception("I hate this command")
+
