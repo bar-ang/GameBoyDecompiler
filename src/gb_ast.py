@@ -114,6 +114,7 @@ def make_scope_for_func(content_begin: Token,
                 tok = tok.jump_addr
         else:
             expr = tok.inst.dry_run(regmap)
+            tok.inst.update_flags(flags, regmap)
             if isinstance(tok.inst, syntax.InstStack):
                 tok.inst.update_stack(regmap, stack)
             if expr:

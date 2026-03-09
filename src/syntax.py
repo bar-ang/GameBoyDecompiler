@@ -218,6 +218,9 @@ class Instruction(ABC):
     def dry_run(self, regmap : TypeRegmap) -> Expr | None:
         pass
 
+    @abstractmethod
+    def update_flags(self, flags: TypeFlagmap, regmap: TypeRegmap) -> None:
+        pass
 
 class InstControl(Instruction):
     def __init__(self, op: Operator):
