@@ -243,8 +243,24 @@ class InstJump(InstFlow):
         assert op in {Operator.JR, Operator.JP}
         super().__init__(op, cond=cond, addr=addr)
 
+    def is_jump_forward(self) -> bool:
+        assert self.op == Operator.JR
+        return self.addr >= 0
+
     def is_relative(self) -> bool:
         return self.op == Operator.JR
+
+    def convert_to_relative(self, pc: int) -> 'InstJump':
+        if self.is_relative():
+            return self
+
+        return InstJump(Operator.JR, addr=self.addr - pc - 2, cond=self.cond)
+
+    def abs_addr(self, pc: int) -> int:
+        if self.op == Operator.JP:
+            return self.addr
+
+        return self.addr + pc + 2
 
 
 class InstConditionalJr(InstJump):

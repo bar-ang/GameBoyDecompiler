@@ -14,9 +14,8 @@ def find_token_by_pc(tokens, pc) -> int | None:
 def search_inf_loop(tokens, main_start):
     for i, tok in enumerate(tokens[main_start:]):
         if isinstance(tok.inst, syntax.InstJump) and not tok.inst.cond and \
-            ((tok.inst.is_relative() and tok.inst.addr < 0) or \
-            (not tok.inst.is_relative() and tok.inst.addr < tok.pc)):
-                return i + main_start
+            (tok.inst.addr <= 0):
+                return i + main_start + 1
     return None
 
 def extract_func_calling(tokens, start, length):
@@ -106,12 +105,12 @@ def map_all_funcs(tokens, calls):
 
 def handle_entry_point(tokens, pc_start):
     i = find_token_by_pc(tokens, pc_start)
-    start = tokens[i].inst
-    if not isinstance(start, syntax.InstJump):
-        start = tokens[i+1].inst
+    start = tokens[i]
+    if not isinstance(start.inst, syntax.InstJump):
+        start = tokens[i+1]
 
-    assert isinstance(start, syntax.InstJump), f"unexpected of '{str(start)}' on entry point"
-    j = find_token_by_pc(tokens, start.addr)
+    assert isinstance(start.inst, syntax.InstJump), f"unexpected of '{str(start)}' on entry point"
+    j = find_token_by_pc(tokens, start.inst.abs_addr(start.pc))
     assert j
     return j
 
@@ -136,6 +135,7 @@ def get_next_feature(token: lexer.Token) -> lexer.Token:
 
 def connect_tokens(tokens: list[lexer.Token]) -> lexer.Token:
     missing_next_feature = []
+    tokens = tokens[:] + [lexer.Token.Empty()]
     for i, tok in enumerate(tokens):
         inst = tok.inst
         if isinstance(inst, syntax.InstRet) or \
@@ -144,14 +144,19 @@ def connect_tokens(tokens: list[lexer.Token]) -> lexer.Token:
             raise Exception(f"Token-linking is not supported for instruction: {inst}")
 
         if isinstance(inst, syntax.InstJump):
-            t = find_token_by_pc(tokens, tok.absolute_addr())
-            assert t
-            tok.jump_addr = tokens[t]
-            if inst.cond:
-                tok.if_cond_unmet = tokens[i+1]
-                missing_next_feature.append(tok)
+            if inst.is_jump_forward():
+                t = find_token_by_pc(tokens, tok.inst.addr)
+                if not t:
+                    import pdb; pdb.set_trace()
+                assert t
+                tok.jump_addr = tokens[t]
+                if inst.cond:
+                    tok.if_cond_unmet = tokens[i+1]
+                    missing_next_feature.append(tok)
+                else:
+                    tok.next_feature = tok.jump_addr
             else:
-                tok.next_feature = tok.jump_addr
+                tok.next_feature = tokens[i+1]
         elif  i < len(tokens) - 1:
             tok.next_feature = tokens[i+1]
 

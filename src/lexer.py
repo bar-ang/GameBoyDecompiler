@@ -25,6 +25,9 @@ class UnknownInstructionException(Exception):
 
 @total_ordering
 class Token:
+    def Empty():
+        return Token(Instruction.Empty(), 0)
+
     def __init__(self, inst : Instruction, pc: int,
                  next_feature: Token | None=None,
                  jump_addr: Token | None=None,
@@ -74,13 +77,6 @@ class Token:
             g.edge(src, str(id(self.if_cond_unmet)),
                    label="unmet", color="red")
 
-
-    def absolute_addr(self) -> int:
-        assert isinstance(self.inst, InstJump)
-        if isinstance(self.inst, InstJp):
-            return self.inst.addr
-        else:
-            return self.inst.addr + self.pc + 2
 
     def conditional(self) -> bool:
         return self.if_cond_unmet is not None
@@ -383,6 +379,8 @@ def tokenize_code(code, start_pc=0):
     while pc < start_pc + codelen:
         try:
             inst, n_bytes = consume(code, pc)
+            if isinstance(inst, InstJump):
+                inst = inst.convert_to_relative(pc)
             tokcode.append(Token(inst=inst, pc=pc))
             pc += n_bytes
         except UnknownInstructionException:
