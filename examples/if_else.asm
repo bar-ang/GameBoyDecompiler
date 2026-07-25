@@ -21,5 +21,4 @@ after:
 	ld [$f], a
 
 inf:
-	nop
 	jr inf
