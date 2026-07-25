@@ -13,6 +13,7 @@ def main(gb_file):
     print("exploring...")
     explored = explore(tokens)
     print("building AST...")
+    import pdb; pdb.set_trace()
     ast = build_ast(explored)
 
     print(ast)
