@@ -237,6 +237,11 @@ class InstFlow(Instruction):
     def dry_run(self, regmap : TypeRegmap) -> Expr | None:
         return None
 
+    def abs_addr(self, pc: int) -> int:
+        if self.op == Operator.JR:
+            return self.addr + pc + 2
+        return self.addr
+
 
 class InstJump(InstFlow):
     def __init__(self, op: Operator, addr: int, cond: Cond | None=None):
@@ -255,12 +260,6 @@ class InstJump(InstFlow):
             return self
 
         return InstJump(Operator.JR, addr=self.addr - pc - 2, cond=self.cond)
-
-    def abs_addr(self, pc: int) -> int:
-        if self.op == Operator.JP:
-            return self.addr
-
-        return self.addr + pc + 2
 
 
 class InstConditionalJr(InstJump):
