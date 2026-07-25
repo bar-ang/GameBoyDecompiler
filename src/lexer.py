@@ -25,6 +25,8 @@ class UnknownInstructionException(Exception):
 
 @total_ordering
 class Token:
+
+    @staticmethod
     def Empty():
         return Token(Instruction.Empty(), 0)
 
@@ -54,12 +56,18 @@ class Token:
         g = Digraph("tokens", strict=True)
         g.attr(rankdir="TD")
         token.to_graph(g)
-        g.render(filename, format="png", cleanup=True)
+        g.render(filename, format="pdf", cleanup=True)
 
-    def to_graph(self, graph):
+    def to_graph(self, graph,*, visited=[]):
         g = graph
 
         src = str(id(self))
+
+        if src in visited:
+            return
+
+        visited.append(src)
+        print(self)
         g.node(src, str(self), shape="box")
 
         if self.jump_addr is not None:
