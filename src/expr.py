@@ -91,24 +91,6 @@ class ComparativeExpr(OperatorExpr):
         super().__init__(op, a, b, postpositive=postpositive)
 
 
-#    @staticmethod
-#    def make(op: TypeBaseExpr,
-#             a: TypeBaseExpr | None=None,
-#             b: TypeBaseExpr | None=None,
-#             **kwargs) -> Expr:
-
-#        p1 = Expr(a) if a is not None else None
-#        p2 = Expr(b) if b is not None else None
-
-#        return Expr(op, p1, p2, **kwargs)
-
-#    def op_as_str(self) -> str:
-#        if type(self.op) == str:
-#            return self.op
-
-#        assert type(self.op) == int
-#        return f"${self.op:0{self.size_bytes}X}"
-
     def __repr__(self) -> str:
         return self.__str__()
 
