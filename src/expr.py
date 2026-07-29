@@ -80,6 +80,9 @@ class ArithExpr(OperatorExpr):
         self.inversible = inversible
         self.neutral_obj = neutral_obj
 
+    def optimize(self) -> Expr:
+        pass
+
 class ComparativeExpr(OperatorExpr):
     def __init__(self, op: str,
                  a: Expr,
@@ -122,30 +125,7 @@ class ComparativeExpr(OperatorExpr):
         return True
 
     def optimize(self) -> Expr:
-        opa = None
-        opb = None
-
-        if self.a:
-            opa = self.a.optimize()
-
-        if self.b:
-            opb = self.b.optimize()
-
-        if isinstance(self.op, int):
-            assert not opa and not opb
-            return Expr(self.op)
-
-        try:
-            if opa and opb and isinstance(opa.op, int) and isinstance(opb.op, int):
-                return Expr(action_binary[self.op](opa.op, opb.op))
-            elif opa and isinstance(opa.op, int) and not opb:
-                return Expr(action_unary[self.op](opa.op))
-            elif opb and isinstance(opb.op, int) and not opa:
-                return Expr(action_unary[self.op](opb.op))
-        except KeyError:
-            pass
-
-        return Expr(self.op, opa, opb)
+        pass
 
 
 class PrimitiveExpr(Expr, ABC):
