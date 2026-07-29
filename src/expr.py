@@ -25,7 +25,6 @@ class OperatorExpr(Expr, ABC):
                  a: Expr | None = None,
                  b: Expr | None = None,
                  *, postpositive: bool=False):
-        #import pdb; pdb.set_trace()
         self.op = op
         self.a = a or PrimitiveNone()
         self.b = b or PrimitiveNone()
