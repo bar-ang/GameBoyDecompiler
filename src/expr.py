@@ -183,7 +183,7 @@ class PrimitiveConst(PrimitiveExpr):
         return self.data
 
     def __str__(self):
-        return f"${self.const:x}"
+        return f"{self.const:x}"
 
     def optimize(self):
         return PrimitiveConst(self.const)
@@ -201,7 +201,7 @@ class PrimitiveVar(PrimitiveExpr):
         return PrimitiveVar(self.var)
 
     def __str__(self):
-        return self.var
+        return f"%{self.var}"
 
 class PrimitivePointer(PrimitiveExpr):
     def __init__(self, pointer: int, size_bytes: int = 4):
@@ -217,7 +217,7 @@ class PrimitivePointer(PrimitiveExpr):
         return PrimitivePointer(self.pointer, self.size_bytes)
 
     def __str__(self):
-        return f"${self.pointer:0{self.size_bytes}X}"
+        return f"{self.pointer:0{self.size_bytes}X}"
 
 def main() -> int:
     a = PrimitiveVar("a")
