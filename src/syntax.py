@@ -59,6 +59,7 @@ SIGNS = {
     Operator.SBC: "-`",
     Operator.INC: "+",
     Operator.DEC: "-",
+    Operator.CP: "-",
     Operator.CPL: "~",
     Operator.OR:  "|",
     Operator.XOR: "^",
