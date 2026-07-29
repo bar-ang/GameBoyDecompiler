@@ -80,8 +80,51 @@ class ArithExpr(OperatorExpr):
         self.inversible = inversible
         self.neutral_obj = neutral_obj
 
-    def optimize(self) -> Expr:
-        pass
+
+    def untangle(self):
+        '''
+        return all decendants that are not ArithExpr of the same op.
+        this is useful to handle associative operations.
+        e.g.
+        for expr: A + B + C + D
+        returns [A, B, C, D]
+        '''
+
+        res = []
+        if isinstance(self.a, ArithExpr) and self.a.op == self.op:
+            res += self.a.untangle()
+        else:
+            res.append(self.a)
+
+        if isinstance(self.b, ArithExpr) and self.b.op == self.op:
+            res += self.b.untangle()
+        else:
+            res.append(self.b)
+
+        return res
+
+    def optimize_associative(self):
+        assert self.op == "+", "not implemented"
+        parts = self.untangle()
+        parts = [p.optimize() for p in parts]
+        res = [p for p in parts if not isinstance(p, PrimitiveConst)]
+        agg = sum([p.const for p in parts if isinstance(p, PrimitiveConst)])
+        res.append(PrimitiveConst(agg))
+
+        if len(res) == 1:
+            return res[0]
+
+        t = ArithExpr("+", res[0], res[1])
+        for expr in res[2:]:
+            t = ArithExpr("+", t, expr)
+
+        return t
+
+    def optimize(self):
+        if self.associative:
+            return self.optimize_associative()
+        else:
+            super().optimize()
 
 class ComparativeExpr(OperatorExpr):
     def __init__(self, op: str,
