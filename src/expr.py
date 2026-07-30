@@ -153,6 +153,24 @@ class ArithExpr(OperatorExpr):
             return ArithExpr(self.op, a, b, **self.properties)
             super().optimize()
 
+    def __str__(self):
+        regex = r'[A-Za-z0-9&\. ]+'
+        str_a = f"{self.a}"
+        str_b = f"{self.b}"
+
+        if not self.associative or (isinstance(self.a, ArithExpr) and self.a.op != self.op):
+            if str_a and not re.fullmatch(regex, str_a):
+                str_a = f"({str_a})"
+
+        if not self.associative or (isinstance(self.b, ArithExpr) and self.b.op != self.op):
+            if str_b and not re.fullmatch(regex, str_b):
+                str_b = f"({str_b})"
+
+        if self._postpositive:
+            return f"{self.op}{str_a}{str_b}"
+
+        return f"{str_a}{self.op}{str_b}"
+
 class ComparativeExpr(OperatorExpr):
     def __init__(self, op: str,
                  a: Expr,
