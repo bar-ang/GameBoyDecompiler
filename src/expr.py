@@ -108,6 +108,17 @@ class ArithExpr(OperatorExpr):
 
         return res
 
+    @property
+    def properties(self):
+        return dict(
+            associative = self.associative,
+            commutative = self.commutative,
+            inversible = self.inversible,
+            neutral_obj = self.neutral_obj,
+            negative_op = self.negative_op,
+            postpositive = self._postpositive
+        )
+
     def optimize_associative(self):
         assert self.op == "+", "not implemented"
         parts = self.untangle()
@@ -119,9 +130,9 @@ class ArithExpr(OperatorExpr):
         if len(res) == 1:
             return res[0]
 
-        t = ArithExpr("+", res[0], res[1])
+        t = ArithExpr(self.op, res[0], res[1], **self.properties)
         for expr in res[2:]:
-            t = ArithExpr("+", t, expr)
+            t = ArithExpr(self.op, t, expr, **self.properties)
 
         return t
 
@@ -129,6 +140,13 @@ class ArithExpr(OperatorExpr):
         if self.associative:
             return self.optimize_associative()
         else:
+            a = self.a.optimize()
+            b = self.b.optimize()
+
+            if not isinstance(a, PrimitiveVar) and not isinstance(b, PrimitiveVar):
+                return PrimitiveConst(action_binary[self.op](a.data,b.data))
+
+            return ArithExpr(self.op, a, b, **self.properties)
             super().optimize()
 
 class ComparativeExpr(OperatorExpr):
