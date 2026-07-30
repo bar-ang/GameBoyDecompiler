@@ -120,12 +120,16 @@ class ArithExpr(OperatorExpr):
         )
 
     def optimize_associative(self):
-        assert self.op == "+", "not implemented"
         parts = self.untangle()
         parts = [p.optimize() for p in parts]
         res = [p for p in parts if not isinstance(p, PrimitiveConst)]
-        agg = sum([p.const for p in parts if isinstance(p, PrimitiveConst)])
-        res.append(PrimitiveConst(agg))
+        agg = [p.const for p in parts if isinstance(p, PrimitiveConst)]
+
+        if len(agg) > 0:
+            agg2 = agg[0]
+            for t in agg[1:]:
+                agg2 = action_binary[self.op](agg2, t)
+            res.append(PrimitiveConst(agg2))
 
         if len(res) == 1:
             return res[0]
