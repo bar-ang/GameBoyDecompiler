@@ -76,12 +76,14 @@ class ArithExpr(OperatorExpr):
                  commutative: bool = False,
                  inversible: bool = False,
                  neutral_obj: Primitive | None = None,
+                 negative_op: str = "",
                  *, postpositive: bool=False):
         super().__init__(op, a, b, postpositive=postpositive)
         self.associative = associative
         self.commutative = commutative
         self.inversible = inversible
         self.neutral_obj = neutral_obj
+        self.negative_op = negative_op
 
 
     def untangle(self):
