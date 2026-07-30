@@ -48,6 +48,9 @@ class OperatorExpr(Expr, ABC):
     def optimize(self) -> Expr:
         return OperatorExpr(self.op, self.a.optimize(), self.b.optimize())
 
+    def __eq__(self, other):
+        return self.a == other.a and self.b == other.b and self.op == other.op
+
     def __str__(self):
         regex = r'[A-Za-z0-9&\. ]+'
         str_a = f"{self.a}"
