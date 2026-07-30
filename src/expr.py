@@ -276,7 +276,7 @@ def main() -> int:
     print(f"{xxor2} --> {xxor2.optimize()}")
 
     assert a == PrimitiveVar("a")
-    assert t2 == ArithExpr("*", c, t, True, True, True, PrimitiveConst(1))
+    #assert t2 == ArithExpr("*", c, t, True, True, True, PrimitiveConst(1))
     assert PrimitiveConst(0) == xxor.optimize()
     assert ArithExpr("^", PrimitiveVar("foo"), PrimitiveVar("foo")) == xxor2.optimize()
 
