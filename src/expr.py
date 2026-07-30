@@ -195,7 +195,7 @@ class ComparativeExpr(OperatorExpr):
         return True
 
     def optimize(self) -> Expr:
-        pass
+        return super().optimize()
 
 
 class PrimitiveExpr(Expr, ABC):
