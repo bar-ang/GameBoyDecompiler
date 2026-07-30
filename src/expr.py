@@ -302,6 +302,15 @@ def main() -> int:
     assert PrimitiveConst(0) == xxor.optimize()
     assert ArithExpr("^", PrimitiveVar("foo"), PrimitiveVar("foo")) == xxor2.optimize()
 
+
+    print("equations optimizations")
+    a = PrimitiveVar("a")
+    b = PrimitiveVar("b")
+    left = ArithExpr("-", a, b, True, True, True, PrimitiveConst(0), "+")
+    eq = ComparativeExpr(">", left, PrimitiveConst(0))
+
+    print(f"{eq} ---> {eq.optimize()}")
+
     return 0
 
 if __name__ == "__main__":
